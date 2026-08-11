@@ -1,0 +1,865 @@
+{
+  "schemaVersion": "1.0.0",
+  "game": {
+    "id": "hogwarts-magical-world",
+    "name": "Hogwarts Magical World",
+    "description": "A top-down pixel-art magical world with explorable Hogwarts locations and magical dueling.",
+    "engine": {
+      "rendering": "three",
+      "framework": "react-three-fiber",
+      "physics": "existing-project-physics",
+      "camera": "orthographic"
+    },
+    "pixelArt": {
+      "enabled": true,
+      "pixelPerfect": true,
+      "tileSize": 32,
+      "textureFiltering": "nearest"
+    }
+  },
+  "assets": {
+    "root": "/assets",
+    "characters": "/assets/characters",
+    "environment": "/assets/environment",
+    "buildings": "/assets/buildings",
+    "dueling": "/assets/dueling",
+    "spells": "/assets/spells",
+    "ui": "/assets/ui",
+    "audio": "/assets/audio"
+  },
+  "settings": {
+    "controls": {
+      "up": [
+        "ArrowUp",
+        "KeyW"
+      ],
+      "down": [
+        "ArrowDown",
+        "KeyS"
+      ],
+      "left": [
+        "ArrowLeft",
+        "KeyA"
+      ],
+      "right": [
+        "ArrowRight",
+        "KeyD"
+      ],
+      "interact": [
+        "KeyE"
+      ],
+      "attack": [
+        "Mouse0"
+      ],
+      "spell1": [
+        "Digit1"
+      ],
+      "spell2": [
+        "Digit2"
+      ],
+      "spell3": [
+        "Digit3"
+      ],
+      "spell4": [
+        "Digit4"
+      ],
+      "pause": [
+        "Escape"
+      ]
+    },
+    "interactionDistance": 2.0,
+    "defaultPlayerSpeed": 5,
+    "enableDebug": true
+  },
+  "camera": {
+    "type": "orthographic",
+    "followPlayer": true,
+    "smoothFollow": true,
+    "followSpeed": 8,
+    "zoom": 1.5,
+    "minZoom": 0.75,
+    "maxZoom": 2.5,
+    "bounds": {
+      "enabled": true,
+      "useCurrentRoomBounds": true
+    }
+  },
+  "world": {
+    "defaultRoom": "hogwartsExterior",
+    "rooms": {
+      "hogwartsExterior": {
+        "id": "hogwartsExterior",
+        "type": "outdoor",
+        "name": "Hogwarts Grounds",
+        "assetSet": "hogwarts-exterior",
+        "size": {
+          "width": 200,
+          "height": 210
+        },
+        "ground": {
+          "type": "tile",
+          "tile": "grass",
+          "variation": [
+            "grass",
+            "grass_dark",
+            "grass_light"
+          ],
+          "walkable": true
+        },
+        "playerSpawn": {
+          "x": 60,
+          "y": 80
+        },
+        "buildings": [
+          "duelingBuilding"
+        ],
+        "paths": [
+          {
+            "id": "mainPath",
+            "type": "stone",
+            "points": [
+              [60, 80],
+              [60, 72],
+              [60, 68],
+              [60, 65],
+              [70, 65],
+              [80, 65],
+              [90, 65],
+              [100, 65],
+              [110, 65],
+              [120, 65],
+              [130, 65],
+              [140, 65],
+              [140, 70],
+              [140, 75],
+              [140, 80]
+            ]
+          },
+          {
+            "id": "duelingPath",
+            "type": "stone",
+            "points": [
+              [60, 68],
+              [59, 62],
+              [59, 58]
+            ]
+          },
+          {
+            "id": "botanicalPath",
+            "type": "stone",
+            "points": [
+              [140, 80],
+              [140, 85]
+            ]
+          },
+          {
+            "id": "libraryPath",
+            "type": "stone",
+            "points": [
+              [110, 85],
+              [110, 90],
+              [110, 95],
+              [110, 100],
+              [110, 105],
+              [110, 110]
+            ]
+          },
+          {
+            "id": "creaturesPath",
+            "type": "stone",
+            "points": [
+              [60, 80],
+              [60, 110],
+              [60, 120],
+              [60, 130],
+              [60, 140],
+              [55, 145],
+              [52, 148],
+              [50, 150]
+            ]
+          },
+          {
+            "id": "hospitalPath",
+            "type": "stone",
+            "points": [
+              [130, 50],
+              [130, 35],
+              [130, 20],
+              [125, 12],
+              [120, 10],
+              [115, 9],
+              [110, 8]
+            ]
+          },
+          {
+            "id": "astronomyPath",
+            "type": "stone",
+            "points": [
+              [60, 80],
+              [60, 90],
+              [60, 100],
+              [60, 110],
+              [55, 110],
+              [50, 110],
+              [45, 110],
+              [40, 110],
+              [35, 110],
+              [30, 110],
+              [28, 110]
+            ]
+          }
+        ],
+        "collision": {
+          "source": "objects-and-structures"
+        }
+      },
+      "astronomyTower": {
+        "id": "astronomyTower",
+        "type": "buildingExterior",
+        "name": "Astronomy Tower",
+        "assetSet": "astronomy-tower",
+        "size": { "width": 65, "height": 40 },
+        "position": { "x": 25, "y": 110 },
+        "playerSpawn": { "x": 60, "y": 145 },
+        "exit": {
+          "destinationRoom": "hogwartsExterior",
+          "spawn": { "x": 60, "y": 142 }
+        },
+        "visual": {
+          "door": { "x": 28, "y": 33, "w": 5, "h": 4 },
+          "collision": [
+            { "x": 0,  "y": 0,  "w": 65, "h": 30 },
+            { "x": 0,  "y": 30, "w": 26, "h": 10 },
+            { "x": 33, "y": 30, "w": 32, "h": 10 }
+          ]
+        },
+        "buildings": [],
+        "collision": { "source": "building-collision" }
+      },
+      "botanicalClassroom": {
+        "id": "botanicalClassroom",
+        "type": "buildingExterior",
+        "name": "Botanical Classroom",
+        "assetSet": "botanical-classroom",
+        "size": {
+          "width": 60,
+          "height": 35
+        },
+        "position": {
+          "x": 110,
+          "y": 50
+        },
+        "playerSpawn": {
+          "x": 140,
+          "y": 82
+        },
+        "exit": {
+          "destinationRoom": "hogwartsExterior",
+          "spawn": {
+            "x": 140,
+            "y": 78
+          }
+        },
+        "visual": {
+          "door": {
+            "x": 30,
+            "y": 28,
+            "w": 4,
+            "h": 4
+          },
+          "collision": [
+            { "x": 0, "y": 0, "w": 60, "h": 26 },
+            { "x": 0, "y": 26, "w": 28, "h": 9 },
+            { "x": 34, "y": 26, "w": 26, "h": 9 }
+          ]
+        },
+        "buildings": [],
+        "collision": {
+          "source": "building-collision"
+        }
+      },
+      "rarePlantQuestRoom": {
+        "id": "rarePlantQuestRoom",
+        "type": "questRoom",
+        "name": "Rare Plant Quest Room",
+        "assetSet": "botanical-classroom",
+        "parentRoom": "botanicalClassroom",
+        "size": { "width": 84, "height": 48 },
+        "playerSpawn": { "x": 42, "y": 41 },
+        "returnSpawn": { "x": 55, "y": 31 },
+        "quest": {
+          "id": "rarePlantQuest",
+          "name": "Find the Rare Plant",
+          "description": "Something rare is hidden in this room. Find the rare plant.",
+          "p1": { "asset": "p1.jpg", "result": "wrong", "message": "Wrong plant. Search again." },
+          "p2": { "asset": "p2.jpg", "result": "wrong", "message": "Wrong plant. Search again." },
+          "p3": { "asset": "p3.jpg", "result": "correct", "message": "You have found a rare plant!" }
+        }
+      },
+      "duelingBuilding": {
+        "id": "duelingBuilding",
+        "type": "buildingExterior",
+        "name": "Defense Against the Dark Arts HQ",
+        "assetSet": "dueling-building",
+        "size": {
+          "width": 70,
+          "height": 42
+        },
+        "position": {
+          "x": 25,
+          "y": 35
+        },
+        "playerSpawn": {
+          "x": 62,
+          "y": 74
+        },
+        "exit": {
+          "destinationRoom": "hogwartsExterior",
+          "spawn": {
+            "x": 62,
+            "y": 72
+          }
+        },
+        "visual": {
+          "door": {
+            "x": 36,
+            "y": 34,
+            "w": 5,
+            "h": 4
+          },
+          "clock": { "x": 38, "y": 18 },
+          "gargoyles": [
+            { "x": 33, "y": 35 },
+            { "x": 45, "y": 35 }
+          ],
+          "collision": [
+            { "x": 0,  "y": 0,  "w": 70, "h": 33 },
+            { "x": 0,  "y": 33, "w": 34, "h": 3  },
+            { "x": 43, "y": 33, "w": 27, "h": 3  }
+          ]
+        },
+        "buildings": [],
+        "collision": {
+          "source": "building-collision"
+        }
+      },
+      "duelingArena": {
+        "id": "duelingArena",
+        "type": "duelingArena",
+        "name": "Magical Dueling Arena",
+        "assetSet": "dueling-arena",
+        "size": {
+          "width": 60,
+          "height": 40
+        },
+        "playerSpawns": {
+          "player1": {
+            "x": 12,
+            "y": 20
+          },
+          "player2": {
+            "x": 48,
+            "y": 20
+          }
+        },
+        "spectatorArea": {
+          "enabled": true,
+          "bounds": {
+            "x": 5,
+            "y": 4,
+            "width": 50,
+            "height": 7
+          }
+        },
+        "arenaBounds": {
+          "x": 7,
+          "y": 12,
+          "width": 46,
+          "height": 22
+        },
+        "collision": {
+          "walls": true,
+          "pillars": true,
+          "solidDecorations": true
+        }
+      }
+    }
+  },
+  "buildings": {
+    "duelingBuilding": {
+      "id": "duelingBuilding",
+      "type": "magicalDuelingBuilding",
+      "visual": {
+        "style": "top-down-pixel-art",
+        "reference": "attached-reference-image",
+        "assetDirectory": "/assets/buildings/dueling",
+        "pixelScale": 1
+      },
+      "structure": {
+        "mainBody": {
+          "x": 8,
+          "y": 8,
+          "width": 24,
+          "height": 16,
+          "material": "stone"
+        },
+        "leftWing": {
+          "x": 2,
+          "y": 10,
+          "width": 10,
+          "height": 12,
+          "roof": "triangular-dark"
+        },
+        "rightWing": {
+          "x": 28,
+          "y": 10,
+          "width": 10,
+          "height": 12,
+          "roof": "triangular-dark",
+          "greenhouse": true
+        },
+        "centralTower": {
+          "x": 14,
+          "y": 1,
+          "width": 12,
+          "height": 12,
+          "material": "tower-stone",
+          "roof": "conical-dark",
+          "clock": true,
+          "chimney": true
+        }
+      },
+      "windows": [
+        {
+          "id": "leftWindow1",
+          "x": 5,
+          "y": 14,
+          "style": "gothic-stained-glass"
+        },
+        {
+          "id": "leftWindow2",
+          "x": 9,
+          "y": 14,
+          "style": "gothic-stained-glass"
+        },
+        {
+          "id": "centerWindow1",
+          "x": 13,
+          "y": 14,
+          "style": "gothic-stained-glass"
+        },
+        {
+          "id": "centerWindow2",
+          "x": 27,
+          "y": 14,
+          "style": "gothic-stained-glass"
+        },
+        {
+          "id": "rightWindow1",
+          "x": 31,
+          "y": 14,
+          "style": "gothic-stained-glass"
+        },
+        {
+          "id": "rightWindow2",
+          "x": 35,
+          "y": 14,
+          "style": "greenhouse"
+        }
+      ],
+      "tower": {
+        "clock": {
+          "enabled": true,
+          "position": [
+            20,
+            7
+          ],
+          "style": "stone-clock"
+        },
+        "chimney": {
+          "enabled": true,
+          "position": [
+            25,
+            6
+          ],
+          "smoke": true
+        }
+      },
+      "entrance": {
+        "id": "duelingMainDoor",
+        "position": [
+          20,
+          24
+        ],
+        "size": [
+          3,
+          2
+        ],
+        "visual": "wooden-double-door",
+        "arch": "stone-arch",
+        "gargoyles": [
+          {
+            "id": "leftGargoyle",
+            "position": [
+              17,
+              24
+            ],
+            "solid": true
+          },
+          {
+            "id": "rightGargoyle",
+            "position": [
+              23,
+              24
+            ],
+            "solid": true
+          }
+        ],
+        "sign": {
+          "id": "duelingSign",
+          "position": [
+            20,
+            21.5
+          ],
+          "text": "قاعة المبارزة",
+          "subtitle": "ساحة المبارزات السحرية",
+          "visual": "wooden-magical-sign"
+        },
+        "interaction": {
+          "enabled": true,
+          "key": "KeyE",
+          "prompt": "Press E",
+          "action": "ENTER_ROOM",
+          "destination": "duelingArena",
+          "destinationSpawn": "player1"
+        }
+      },
+      "decorations": [
+        {
+          "id": "barrel01",
+          "type": "barrel",
+          "x": 5,
+          "y": 22,
+          "solid": true
+        },
+        {
+          "id": "barrel02",
+          "type": "barrel",
+          "x": 35,
+          "y": 22,
+          "solid": true
+        },
+        {
+          "id": "flower01",
+          "type": "flower",
+          "x": 4,
+          "y": 25,
+          "solid": false
+        },
+        {
+          "id": "flower02",
+          "type": "flower",
+          "x": 8,
+          "y": 27,
+          "solid": false
+        },
+        {
+          "id": "flower03",
+          "type": "flower",
+          "x": 32,
+          "y": 27,
+          "solid": false
+        },
+        {
+          "id": "flower04",
+          "type": "flower",
+          "x": 36,
+          "y": 25,
+          "solid": false
+        },
+        {
+          "id": "plant01",
+          "type": "plant",
+          "x": 5,
+          "y": 13,
+          "solid": true
+        },
+        {
+          "id": "plant02",
+          "type": "plant",
+          "x": 35,
+          "y": 13,
+          "solid": true
+        },
+        {
+          "id": "lantern01",
+          "type": "magical-lantern",
+          "x": 17,
+          "y": 23,
+          "solid": false
+        },
+        {
+          "id": "lantern02",
+          "type": "magical-lantern",
+          "x": 23,
+          "y": 23,
+          "solid": false
+        }
+      ],
+      "collision": [
+        {
+          "x": 2,
+          "y": 10,
+          "width": 10,
+          "height": 12
+        },
+        {
+          "x": 28,
+          "y": 10,
+          "width": 10,
+          "height": 12
+        },
+        {
+          "x": 8,
+          "y": 8,
+          "width": 24,
+          "height": 16
+        },
+        {
+          "x": 14,
+          "y": 1,
+          "width": 12,
+          "height": 12
+        }
+      ]
+    }
+  },
+  "player": {
+    "id": "player",
+    "asset": "/assets/characters/player",
+    "movement": {
+      "enabled": true,
+      "speed": 5,
+      "diagonalNormalization": true,
+      "collision": true
+    },
+    "animation": {
+      "idle": true,
+      "walk": true,
+      "cast": true,
+      "hit": true,
+      "victory": true
+    },
+    "health": {
+      "max": 100,
+      "current": 100
+    },
+    "spawnByRoom": {
+      "hogwartsExterior": [
+        60,
+        80
+      ],
+      "duelingBuilding": [
+        60,
+        72
+      ],
+      "duelingArena": [
+        12,
+        20
+      ]
+    }
+  },
+  "npc": {
+    "enabled": true,
+    "defaultCollision": true,
+    "types": {
+      "student": {
+        "asset": "/assets/characters/student"
+      },
+      "spectator": {
+        "asset": "/assets/characters/spectator",
+        "canWatchDuels": true
+      }
+    }
+  },
+  "dueling": {
+    "enabled": true,
+    "arenaRoom": "duelingArena",
+    "maxPlayers": 2,
+    "match": {
+      "countdown": [
+        "3",
+        "2",
+        "1",
+        "DUEL!"
+      ],
+      "countdownSeconds": 3,
+      "winCondition": "opponent-health-zero",
+      "allowMovement": true,
+      "allowSpells": true
+    },
+    "spawns": {
+      "player1": [
+        12,
+        20
+      ],
+      "player2": [
+        48,
+        20
+      ]
+    },
+    "combat": {
+      "friendlyFire": false,
+      "stunEnabled": true,
+      "knockbackEnabled": true,
+      "invulnerabilityAfterHit": 0.5
+    },
+    "spells": {
+      "enabled": true,
+      "projectiles": true,
+      "collision": true,
+      "defaultCooldown": 1.0,
+      "available": [
+        {
+          "id": "basicBolt",
+          "name": "Basic Spell",
+          "damage": 10,
+          "speed": 15,
+          "cooldown": 0.5,
+          "asset": "/assets/spells/basic-bolt"
+        },
+        {
+          "id": "stunningSpell",
+          "name": "Stunning Spell",
+          "damage": 5,
+          "stunDuration": 1.5,
+          "speed": 12,
+          "cooldown": 3,
+          "asset": "/assets/spells/stun"
+        },
+        {
+          "id": "shield",
+          "name": "Magic Shield",
+          "damage": 0,
+          "duration": 2,
+          "cooldown": 5,
+          "asset": "/assets/spells/shield"
+        }
+      ]
+    },
+    "arena": {
+      "floor": {
+        "asset": "/assets/dueling/arena-floor",
+        "magicalRunes": true
+      },
+      "boundaries": {
+        "walls": true,
+        "magicalBarrier": true
+      },
+      "spectators": {
+        "enabled": true,
+        "max": 12
+      }
+    }
+  },
+  "interactions": {
+    "duelingMainDoor": {
+      "type": "door",
+      "key": "KeyE",
+      "prompt": "Press E",
+      "action": "ENTER_ROOM",
+      "destination": "duelingArena"
+    }
+  },
+  "sceneTransitions": {
+    "enabled": true,
+    "fade": {
+      "enabled": true,
+      "duration": 0.35
+    },
+    "transitions": [
+      {
+        "from": "hogwartsExterior",
+        "to": "duelingBuilding",
+        "spawn": [
+          60,
+          72
+        ]
+      },
+      {
+        "from": "duelingBuilding",
+        "to": "duelingArena",
+        "spawn": [
+          12,
+          20
+        ]
+      },
+      {
+        "from": "duelingArena",
+        "to": "duelingBuilding",
+        "spawn": [
+          20,
+          24
+        ]
+      }
+    ]
+  },
+  "collision": {
+    "enabled": true,
+    "playerVsWorld": true,
+    "playerVsNPC": true,
+    "projectileVsWorld": true,
+    "projectileVsPlayers": true,
+    "layers": {
+      "walkable": 0,
+      "solid": 1,
+      "player": 2,
+      "npc": 3,
+      "projectile": 4
+    }
+  },
+  "lighting": {
+    "enabled": true,
+    "ambient": {
+      "intensity": 0.8
+    },
+    "magicalLights": {
+      "enabled": true,
+      "duelingEntrance": true,
+      "arenaRunes": true
+    }
+  },
+  "audio": {
+    "enabled": true,
+    "music": {
+      "outdoor": "/assets/audio/music/hogwarts-outdoor",
+      "dueling": "/assets/audio/music/dueling"
+    },
+    "effects": {
+      "door": "/assets/audio/sfx/door",
+      "spellCast": "/assets/audio/sfx/spell-cast",
+      "spellHit": "/assets/audio/sfx/spell-hit",
+      "duelStart": "/assets/audio/sfx/duel-start"
+    }
+  },
+  "ui": {
+    "interactionPrompt": {
+      "enabled": true,
+      "style": "magical"
+    },
+    "duelHud": {
+      "enabled": true,
+      "healthBars": true,
+      "spellBar": true,
+      "countdown": true,
+      "winnerMessage": true
+    }
+  },
+  "saveSystem": {
+    "enabled": true,
+    "savePlayerPosition": true,
+    "saveRoom": true,
+    "saveHealth": true,
+    "saveProgress": true
+  }
+}

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Wizard Spritesheet Generator</title>
+  <style>
+    body {
+      background: #222;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    canvas {
+      border: 2px solid #555;
+      margin: 20px auto;
+      display: block;
+      image-rendering: pixelated;
+      background: repeating-conic-gradient(#444 0% 25%, #333 0% 50%) 50% / 20px 20px;
+    }
+    button {
+      background: #4a1a7a;
+      color: #f0cd60;
+      border: 2px solid #c9a227;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 8px;
+      margin: 10px;
+    }
+    button:hover {
+      background: #6a2a9a;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧙 Wizard Spritesheet Generator</h1>
+  <p>Generates a 4-directional walking animation (Down, Up, Left, Right) with 4 frames each.</p>
+  <p>Layout: 4 columns × 4 rows = 16 frames total</p>
+  
+  <canvas id="canvas" width="256" height="256"></canvas>
+  
+  <button onclick="generateSpritesheet()">Generate Spritesheet</button>
+  <button onclick="downloadSpritesheet()">Download wizard.png</button>
+  
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const frameSize = 64; // Each frame is 64x64
+
+    function drawWizard(x, y, direction, frame) {
+      ctx.save();
+      ctx.translate(x + frameSize / 2, y + frameSize / 2);
+
+      // Clear with transparency
+      ctx.clearRect(-frameSize / 2, -frameSize / 2, frameSize, frameSize);
+
+      // Animation offsets for walking
+      let legOffset = 0;
+      let bodyBob = 0;
+      if (frame === 0 || frame === 2) {
+        legOffset = 0;
+        bodyBob = 0;
+      } else if (frame === 1) {
+        legOffset = 3;
+        bodyBob = -1;
+      } else if (frame === 3) {
+        legOffset = -3;
+        bodyBob = -1;
+      }
+
+      // Draw based on direction
+      if (direction === 'down') {
+        drawWizardDown(legOffset, bodyBob);
+      } else if (direction === 'up') {
+        drawWizardUp(legOffset, bodyBob);
+      } else if (direction === 'left') {
+        drawWizardSide(legOffset, bodyBob, false);
+      } else if (direction === 'right') {
+        drawWizardSide(legOffset, bodyBob, true);
+      }
+
+      ctx.restore();
+    }
+
+    function drawWizardDown(legOffset, bodyBob) {
+      // Robe/body (facing down - wide bottom)
+      ctx.fillStyle = '#4a1a7a';
+      ctx.beginPath();
+      ctx.moveTo(-14, 8 + bodyBob);
+      ctx.lineTo(-18, 24);
+      ctx.lineTo(18, 24);
+      ctx.lineTo(14, 8 + bodyBob);
+      ctx.closePath();
+      ctx.fill();
+
+      // Head (circle)
+      ctx.fillStyle = '#f4d03f';
+      ctx.beginPath();
+      ctx.arc(0, 0 + bodyBob, 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Hat
+      ctx.fillStyle = '#1a0533';
+      ctx.beginPath();
+      ctx.moveTo(0, -24 + bodyBob);
+      ctx.lineTo(-12, -8 + bodyBob);
+      ctx.lineTo(12, -8 + bodyBob);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillRect(-14, -10 + bodyBob, 28, 6);
+
+      // Star on hat
+      ctx.fillStyle = '#c9a227';
+      ctx.beginPath();
+      ctx.arc(0, -16 + bodyBob, 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Beard
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(0, 8 + bodyBob);
+      ctx.lineTo(-6, 14 + bodyBob);
+      ctx.lineTo(6, 14 + bodyBob);
+      ctx.closePath();
+      ctx.fill();
+
+      // Eyes
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(-5, -2 + bodyBob, 2, 2);
+      ctx.fillRect(3, -2 + bodyBob, 2, 2);
+
+      // Staff (held in front)
+      ctx.strokeStyle = '#8b4a1c';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(14, 10 + bodyBob);
+      ctx.lineTo(14, 28);
+      ctx.stroke();
+
+      // Staff orb
+      ctx.fillStyle = '#7b3fc4';
+      ctx.beginPath();
+      ctx.arc(14, 8 + bodyBob, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawWizardUp(legOffset, bodyBob) {
+      // Robe/body (facing up - back view)
+      ctx.fillStyle = '#3a1a6a';
+      ctx.beginPath();
+      ctx.moveTo(-14, 8 + bodyBob);
+      ctx.lineTo(-16, 24);
+      ctx.lineTo(16, 24);
+      ctx.lineTo(14, 8 + bodyBob);
+      ctx.closePath();
+      ctx.fill();
+
+      // Hat (back of hat visible)
+      ctx.fillStyle = '#1a0533';
+      ctx.beginPath();
+      ctx.arc(0, -4 + bodyBob, 14, Math.PI, 0);
+      ctx.closePath();
+      ctx.fill();
+
+      // Hat point
+      ctx.beginPath();
+      ctx.moveTo(0, -24 + bodyBob);
+      ctx.lineTo(-10, -8 + bodyBob);
+      ctx.lineTo(10, -8 + bodyBob);
+      ctx.closePath();
+      ctx.fill();
+
+      // Staff (held behind, partially visible)
+      ctx.strokeStyle = '#8b4a1c';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-14, 12 + bodyBob);
+      ctx.lineTo(-14, 28);
+      ctx.stroke();
+    }
+
+    function drawWizardSide(legOffset, bodyBob, flipRight) {
+      const flip = flipRight ? 1 : -1;
+
+      // Robe/body (side view)
+      ctx.fillStyle = '#4a1a7a';
+      ctx.beginPath();
+      ctx.moveTo(-8 * flip, 8 + bodyBob);
+      ctx.lineTo(-12 * flip, 24);
+      ctx.lineTo(8 * flip, 24);
+      ctx.lineTo(12 * flip, 8 + bodyBob);
+      ctx.closePath();
+      ctx.fill();
+
+      // Head
+      ctx.fillStyle = '#f4d03f';
+      ctx.beginPath();
+      ctx.arc(0, 0 + bodyBob, 12, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Hat
+      ctx.fillStyle = '#1a0533';
+      ctx.beginPath();
+      ctx.moveTo(4 * flip, -24 + bodyBob);
+      ctx.lineTo(-8 * flip, -8 + bodyBob);
+      ctx.lineTo(14 * flip, -8 + bodyBob);
+      ctx.closePath();
+      ctx.fill();
+      ctx.fillRect(-10 * flip, -10 + bodyBob, 20, 6);
+
+      // Beard (side profile)
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(4 * flip, 6 + bodyBob);
+      ctx.lineTo(10 * flip, 10 + bodyBob);
+      ctx.lineTo(6 * flip, 12 + bodyBob);
+      ctx.closePath();
+      ctx.fill();
+
+      // Eye (one visible from side)
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(2 * flip, -2 + bodyBob, 2, 2);
+
+      // Nose
+      ctx.fillStyle = '#e4c02f';
+      ctx.beginPath();
+      ctx.moveTo(8 * flip, 0 + bodyBob);
+      ctx.lineTo(12 * flip, 2 + bodyBob);
+      ctx.lineTo(8 * flip, 3 + bodyBob);
+      ctx.closePath();
+      ctx.fill();
+
+      // Staff
+      ctx.strokeStyle = '#8b4a1c';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(-2 * flip, 10 + bodyBob);
+      ctx.lineTo(-2 * flip, 28);
+      ctx.stroke();
+
+      // Staff orb
+      ctx.fillStyle = '#7b3fc4';
+      ctx.beginPath();
+      ctx.arc(-2 * flip, 8 + bodyBob, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function generateSpritesheet() {
+      // Clear canvas with transparency
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const directions = ['down', 'up', 'left', 'right'];
+      
+      // 4x4 grid: 4 frames per direction, 4 directions
+      directions.forEach((dir, row) => {
+        for (let frame = 0; frame < 4; frame++) {
+          const x = frame * frameSize;
+          const y = row * frameSize;
+          drawWizard(x, y, dir, frame);
+        }
+      });
+
+      console.log('✓ Spritesheet generated!');
+    }
+
+    function downloadSpritesheet() {
+      canvas.toBlob(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'wizard.png';
+        a.click();
+        URL.revokeObjectURL(url);
+        console.log('✓ Downloaded wizard.png');
+      }, 'image/png');
+    }
+
+    // Generate on load
+    generateSpritesheet();
+  </script>
+</body>
+</html>

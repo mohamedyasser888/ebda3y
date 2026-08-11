@@ -1,0 +1,654 @@
+/* ============================================================
+   GLOBAL RESET & BASE
+   ============================================================ */
+html, body {
+  margin: 0; padding: 0;
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: #2d6a1f;
+  font-family: "Press Start 2P", monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+#__next, main { width: 100%; height: 100%; }
+#game-container { position:fixed; top:0; left:0; width:100%; height:100%; overflow:hidden; background:#2d6a1f; }
+#game-container canvas { display:block; width:100% !important; height:100% !important; image-rendering:pixelated; image-rendering:crisp-edges; background:transparent; }
+
+:root {
+  font-size: 14px;
+  --gold:        #F4D03F;
+  --gold-light:  #f0cd60;
+  --gold-dim:    rgba(244,208,63,0.25);
+  --purple-deep: #1a0533;
+  --purple-mid:  #4a1a7a;
+  --brown-dark:  #1a0a02;
+  --brown-mid:   #2d1508;
+  --brown-warm:  #5c2d0c;
+  --cream:       #f5e6c4;
+  --candle:      #ffb04a;
+  /* Workstation / alchemy table palette */
+  --wood-dark:   #2c1810;
+  --wood-mid:    #8B4513;
+  --wood-light:  #c68642;
+  --parch-bg:    #f5e6c8;
+  --parch-border:#8B6914;
+  --magic-purple:#9b59b6;
+  --hp-green:    #2ecc71;
+  --hp-red:      #e74c3c;
+  --duel-carpet: #1a472a;
+  --duel-gold:   #DAA520;
+}
+
+/* ============================================================
+   LANDING PAGE (Problem 1)
+   ============================================================ */
+.landing-bg {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(ellipse at center, #1a0a2e 0%, #0a0a1a 100%);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  image-rendering: pixelated;
+}
+
+.landing-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.landing-star-dot {
+  opacity: 0.2;
+}
+
+.landing-moon {
+  position: absolute;
+  top: 40px;
+  right: 40px;
+  width: 120px;
+  height: 120px;
+  background: #fffde0;
+  border-radius: 50%;
+  box-shadow: 0 0 30px 10px rgba(255, 253, 224, 0.4);
+  z-index: 2;
+}
+
+.landing-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  text-align: center;
+  animation: landingFloat 4s ease-in-out infinite;
+}
+
+.landing-icon {
+  font-size: 160px;
+  width: 160px;
+  height: 160px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.landing-title {
+  font-family: "Press Start 2P", monospace;
+  font-size: 64px;
+  color: #F4D03F;
+  text-shadow: 4px 4px 0 #8B6914;
+  margin: 0 0 15px 0;
+  line-height: 1.2;
+}
+
+.landing-subtitle {
+  font-family: "Press Start 2P", monospace;
+  font-size: 18px;
+  color: #c8a96e;
+  letter-spacing: 6px;
+  margin: 0 0 45px 0;
+  text-transform: uppercase;
+}
+
+.landing-badges {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 50px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.landing-badge {
+  font-family: "Press Start 2P", monospace;
+  font-size: 14px;
+  color: #f5e6c8;
+  background: #2c1810;
+  border: 2px solid #F4D03F;
+  border-radius: 9999px;
+  padding: 14px 22px;
+  box-shadow: 3px 3px 0 #000;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.landing-enter-btn {
+  width: 380px;
+  height: 70px;
+  font-family: "Press Start 2P", monospace;
+  font-size: 18px;
+  color: #1a0a2e;
+  background: #F4D03F;
+  border: 4px solid #000;
+  box-shadow: 5px 5px 0 #8B6914;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-enter-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 8px 8px 0 #8B6914;
+}
+
+.landing-enter-btn:active {
+  transform: translateY(0);
+  box-shadow: 5px 5px 0 #8B6914;
+}
+
+/* ============================================================
+   DUELLING SYSTEM (Problem 3)
+   ============================================================ */
+.duel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', monospace;
+  image-rendering: pixelated;
+}
+
+.duel-layout {
+  width: 1440px;
+  height: 810px;
+  display: flex;
+  flex-direction: column;
+  background: #0a0a1a;
+  border: 4px solid #F4D03F;
+  box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  position: relative;
+  overflow: hidden;
+}
+
+.duel-arena-row {
+  width: 1440px;
+  height: 300px;
+  display: flex;
+  background: linear-gradient(180deg, #0a0a2e 0%, #1a1a4e 100%);
+  border-bottom: 4px solid #8B6914;
+  position: relative;
+}
+
+.duel-player-panel, .duel-ai-panel {
+  width: 180px;
+  height: 296px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.4);
+}
+
+.duel-player-panel {
+  border-right: 4px solid #8B6914;
+}
+
+.duel-ai-panel {
+  border-left: 4px solid #8B6914;
+}
+
+.duel-arena-centre {
+  width: 1080px;
+  height: 296px;
+  position: relative;
+  overflow: hidden;
+}
+
+.duel-wizard-player, .duel-wizard-ai {
+  position: absolute;
+  bottom: 40px;
+  width: 70px;
+  height: 90px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 5;
+}
+
+.duel-wizard-player {
+  left: 200px;
+}
+
+.duel-wizard-ai {
+  right: 200px;
+}
+
+.duel-hp-bar-wrap {
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.duel-hp-bar {
+  width: 160px;
+  height: 22px;
+  background: #000;
+  border: 3px solid #000;
+  position: relative;
+  overflow: hidden;
+}
+
+.duel-hp-fill {
+  height: 100%;
+  transition: width 0.6s ease-in-out, background-color 0.3s;
+}
+
+.duel-hp-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.duel-status-pill {
+  font-size: 8px;
+  background: #9b59b6;
+  border: 2px solid #F4D03F;
+  padding: 4px 8px;
+  margin-top: 6px;
+  color: #fff;
+}
+
+.duel-projectile {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.duel-damage-float {
+  position: absolute;
+  font-size: 20px;
+  color: #e74c3c;
+  font-family: "Press Start 2P", monospace;
+  text-shadow: 2px 2px 0 #000;
+  z-index: 12;
+  pointer-events: none;
+  animation: floatUp 1200ms ease-out forwards;
+}
+
+.duel-shield-ring {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border: 4px solid #3498db;
+  border-radius: 50%;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 6;
+  animation: shieldRing 800ms ease-out forwards;
+}
+
+.duel-bottom-row {
+  width: 1440px;
+  height: 420px;
+  display: flex;
+  background: #1a1a2e;
+}
+
+.duel-spell-panel {
+  width: 900px;
+  height: 420px;
+  display: flex;
+  flex-direction: column;
+  border-right: 4px solid #8B6914;
+  background: #1a1a2e;
+  position: relative;
+}
+
+.duel-battle-log {
+  width: 540px;
+  height: 420px;
+  background: #1a1208;
+  border-left: 4px solid #8B6914;
+  display: flex;
+  flex-direction: column;
+}
+
+.duel-tabs {
+  display: flex;
+  height: 48px;
+  border-bottom: 3px solid #F4D03F;
+}
+
+.duel-tab {
+  width: 200px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  font-family: "Press Start 2P", monospace;
+  background: #111;
+  color: #888;
+  border: none;
+  cursor: pointer;
+  border-right: 3px solid #F4D03F;
+}
+
+.duel-tab-active {
+  background: #F4D03F !important;
+  color: #1a0a2e !important;
+  font-weight: bold;
+}
+
+.duel-spell-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 15px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.duel-spell-card {
+  width: 260px;
+  height: 140px;
+  border: 3px solid;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.duel-spell-card:hover:not(.duel-spell-disabled) {
+  transform: translateY(-4px);
+}
+
+.duel-spell-card:active:not(.duel-spell-disabled) {
+  transform: scale(0.96);
+}
+
+.duel-spell-disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.duel-spell-icon {
+  font-size: 32px;
+}
+
+.duel-spell-name {
+  font-size: 11px;
+  color: #fff;
+  text-shadow: 1px 1px 0 #000;
+  font-weight: bold;
+}
+
+.duel-spell-value {
+  font-size: 16px;
+  color: #F4D03F;
+  font-weight: bold;
+}
+
+.duel-spell-desc {
+  font-size: 8px;
+  color: #aaa;
+  line-height: 1.3;
+}
+
+.duel-turn-bar {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  color: #F4D03F;
+  border-top: 3px solid #F4D03F;
+  background: #0c0c14;
+}
+
+.duel-bottom-bar {
+  width: 1440px;
+  height: 50px;
+  border-top: 4px solid #8B6914;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 20px;
+  background: #1a1208;
+  z-index: 10;
+}
+
+.duel-log-title {
+  font-size: 9px;
+  color: #F4D03F;
+  padding: 12px;
+  border-bottom: 2px solid #8B6914;
+}
+
+.duel-log-entries {
+  flex: 1;
+  overflow-y: auto;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.duel-log-entry {
+  font-size: 8px;
+  color: #f5e6c8;
+  animation: logEntry 300ms ease-out forwards;
+}
+
+.duel-log-round {
+  font-size: 8px;
+  color: #8B6914;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.duel-log-caster {
+  font-size: 9px;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.duel-log-result {
+  font-size: 8px;
+  margin-left: 5px;
+}
+
+.duel-result-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: resultIn 500ms ease-out forwards;
+}
+
+.duel-result-title {
+  font-size: 28px;
+  font-weight: bold;
+  font-family: "Press Start 2P", monospace;
+  margin-bottom: 20px;
+}
+
+.duel-result-sub {
+  font-size: 12px;
+  color: #f5e6c8;
+  line-height: 1.6;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.duel-result-btn {
+  width: 220px;
+  height: 60px;
+  font-size: 12px;
+  font-family: "Press Start 2P", monospace;
+  border: 3px solid;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.duel-sparkle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #F4D03F;
+  border-radius: 50%;
+  animation: sparkleOut 1200ms ease-out forwards;
+}
+
+.duel-smoke {
+  position: absolute;
+  font-size: 24px;
+  animation: floatUp 1500ms ease-out forwards;
+}
+
+/* ============================================================
+   DIALOGUE BOX / INTERACTION PROMPT (PRESERVED)
+   ============================================================ */
+.dialogue-box {
+  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+  background: linear-gradient(135deg,#2a1005,#3d1f0a 50%,#2a1005);
+  border: 4px solid var(--gold); border-radius: 0px;
+  padding: 20px 28px; width: 500px; color: var(--gold-light);
+  font-family: "Press Start 2P", monospace; font-size: 11px; font-weight: bold;
+  text-align: center; pointer-events: none; z-index: 100;
+  box-shadow: 3px 3px 0 #000;
+  animation: dlgPop 0.28s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.dialogue-box::before {
+  content:''; position:absolute; inset:4px;
+  border:1px solid rgba(201,162,39,0.3); pointer-events:none;
+}
+
+@keyframes dlgPop {
+  from { transform:translateX(-50%) scale(0.75); opacity:0; }
+  to   { transform:translateX(-50%) scale(1);    opacity:1; }
+}
+
+/* ============================================================
+   HUD (PRESERVED)
+   ============================================================ */
+.hud { position:fixed; top:20px; right:20px; display:flex; flex-direction:column; gap:10px; z-index:50; pointer-events:none; }
+.hud-panel {
+  background: linear-gradient(135deg,rgba(26,5,51,0.92),rgba(42,16,5,0.92));
+  border:4px solid var(--gold); padding:20px;
+  width: 280px; display:flex; align-items:center; gap:16px;
+  box-shadow: 3px 3px 0 #000;
+  backdrop-filter:blur(4px);
+}
+.hud-icon  { font-size:32px; }
+.hud-text  { color:var(--cream); font-family:"Press Start 2P", monospace; font-size:14px; }
+.hud-value { color:var(--gold-light); font-weight:bold; }
+
+/* ============================================================
+   SCROLLBARS
+   ============================================================ */
+::-webkit-scrollbar { width:5px; height:5px; }
+::-webkit-scrollbar-track { background:rgba(42,16,5,0.4); }
+::-webkit-scrollbar-thumb { background:var(--gold); }
+
+/* ============================================================
+   ANIMATIONS & KEYFRAMES
+   ============================================================ */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 1.0; }
+}
+
+@keyframes landingFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes spellFly {
+  from { transform: translateX(0); }
+  to { transform: translateX(540px); }
+}
+
+@keyframes wizardHit {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-60px); opacity: 0; }
+}
+
+@keyframes shieldRing {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+@keyframes logEntry {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes turnPulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+
+@keyframes resultIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes sparkleOut {
+  0% { transform: translate(0, 0) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+}
+
+@keyframes aiDots {
+  0%, 100% { content: "."; }
+  33% { content: ".."; }
+  66% { content: "..."; }
+}
