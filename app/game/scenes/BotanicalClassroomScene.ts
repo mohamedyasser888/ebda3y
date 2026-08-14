@@ -7,6 +7,7 @@ import Phaser from 'phaser';
 import { eventBus } from '../EventBus';
 import { Wizard } from '../entities/Wizard';
 import { PlayerController } from '../systems/PlayerController';
+import { isQuestAvailable } from '../data/questPaths';
 
 const WORLD_W = 1504;
 const WORLD_H = 848;
@@ -49,6 +50,10 @@ export class BotanicalClassroomScene extends Phaser.Scene {
 
   preload() {
     this.load.image('botanicalClassroomInterior', '/assets/backgrounds/botanical-classroom-interior.jpg');
+    this.load.image('conv_a1', '/a1.png');
+    this.load.image('conv_a2', '/a2.png');
+    this.load.image('conv_a3', '/a3.png');
+    this.load.image('conv_a4', '/a4.png');
   }
 
   create(data?: { spawnX?: number; spawnY?: number; fromQuest?: boolean }) {
@@ -80,8 +85,10 @@ export class BotanicalClassroomScene extends Phaser.Scene {
     this.tweens.add({ targets:[exitGlow, exitBubble, exitIcon], y:'-=7', duration:1100, yoyo:true, repeat:-1, ease:'Sine.easeInOut' });
     this.exitPrompt = this.add.text(bx, by - 55, 'E  EXIT', { fontFamily:'monospace', fontSize:'13px', fontStyle:'bold', color:'#ffe4a3', stroke:'#20150d', strokeThickness:4, padding:{x:6,y:3}, backgroundColor:'#4d311d' }).setOrigin(0.5).setDepth(30).setVisible(false);
 
-    // ── Quest bubble ───────────────────────────────────────────────────────
-    this._createQuestBubble();
+    // ── Quest bubble — evil path only ─────────────────────────────────────
+    if (isQuestAvailable('rarePlant')) {
+      this._createQuestBubble();
+    }
 
     this.questPrompt = this.add.text(
       QUEST_BUBBLE.x, QUEST_BUBBLE.y - 58,
@@ -113,6 +120,63 @@ export class BotanicalClassroomScene extends Phaser.Scene {
     this.cameras.main.fadeIn(600, 0, 0, 0);
 
     eventBus.emit('SCENE_READY', { scene: 'BotanicalClassroomScene' as any });
+
+    if (data?.fromQuest) {
+      this._startConversation();
+    }
+  }
+
+  private _startConversation() {
+    this.isTransitioning = true;
+    this.controller.setBlocked(true);
+
+    const cx = this.scale.width / 2;
+    const cy = this.scale.height / 2;
+    
+    // Dark background
+    const bg = this.add.rectangle(cx, cy, this.scale.width * 2, this.scale.height * 2, 0x000000, 0.95)
+      .setDepth(2000)
+      .setScrollFactor(0)
+      .setInteractive();
+
+    const pages = ['conv_a1', 'conv_a2', 'conv_a3', 'conv_a4'];
+    let pageIndex = 0;
+
+    const img = this.add.image(cx, cy, pages[pageIndex])
+      .setDepth(2001)
+      .setScrollFactor(0);
+      
+    const setImgScale = () => {
+      if (!img.active) return;
+      const sw = this.scale.width;
+      const sh = this.scale.height;
+      bg.setPosition(sw / 2, sh / 2);
+      bg.setSize(sw * 2, sh * 2);
+      img.setPosition(sw / 2, sh / 2);
+      const scale = Math.min((sw * 0.8) / Math.max(1, img.width), (sh * 0.8) / Math.max(1, img.height));
+      img.setScale(scale);
+    };
+    
+    // Add a slight delay to ensure texture dimensions are loaded
+    this.time.delayedCall(50, setImgScale);
+    this.scale.on('resize', setImgScale);
+
+    const advancePage = () => {
+      pageIndex++;
+      if (pageIndex < pages.length) {
+        img.setTexture(pages[pageIndex]);
+        this.time.delayedCall(50, setImgScale);
+      } else {
+        bg.destroy();
+        img.destroy();
+        this.scale.off('resize', setImgScale);
+        this.isTransitioning = false;
+        this.controller.setBlocked(false);
+      }
+    };
+
+    bg.on('pointerdown', advancePage);
+    img.setInteractive().on('pointerdown', advancePage);
   }
 
   private _createQuestBubble() {
@@ -146,32 +210,31 @@ export class BotanicalClassroomScene extends Phaser.Scene {
       this.exitPrompt?.setVisible(this.nearExit);
     }
 
-    // ── Quest zone ────────────────────────────────────────────────────────
-    const wasNearQuest = this.nearQuest;
-    const qDist = Phaser.Math.Distance.Between(spr.x, spr.y, QUEST_BUBBLE.x, QUEST_BUBBLE.y);
-    this.nearQuest = qDist < QUEST_BUBBLE.radius;
-    if (this.nearQuest !== wasNearQuest) {
-      this.questPrompt?.setVisible(this.nearQuest);
+    // ── Quest zone — evil path only ───────────────────────────────────────
+    if (isQuestAvailable('rarePlant')) {
+      const wasNearQuest = this.nearQuest;
+      const qDist = Phaser.Math.Distance.Between(spr.x, spr.y, QUEST_BUBBLE.x, QUEST_BUBBLE.y);
+      this.nearQuest = qDist < QUEST_BUBBLE.radius;
+      if (this.nearQuest !== wasNearQuest) {
+        this.questPrompt?.setVisible(this.nearQuest);
+      }
+    } else {
+      this.nearQuest = false;
     }
   }
 
   private _handleInteract() {
     if (this.isTransitioning) return;
 
-    // Quest takes priority if near quest bubble
-    if (this.nearQuest && !rarePlantQuestState.completed) {
+    // Quest takes priority if near quest bubble — evil path only
+    // Transition directly into T9 (RarePlantQuestScene)
+    if (this.nearQuest && !rarePlantQuestState.completed && isQuestAvailable('rarePlant')) {
       this.isTransitioning = true;
       eventBus.emit('PLAYER_NEAR_DOOR', { near: false });
-      // Pause Phaser input and open React overlay
       this.controller.setBlocked(true);
-      eventBus.emit('OPEN_QUEST' as any);
-      // Listen for quest close
-      const off = eventBus.on('CLOSE_QUEST' as any, (data: unknown) => {
-        off();
-        const d = data as { completed: boolean };
-        if (d.completed) rarePlantQuestState.completed = true;
-        this.isTransitioning = false;
-        this.controller.setBlocked(false);
+      this.cameras.main.fadeOut(700, 0, 18, 4);
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.scene.start('RarePlantQuestScene');
       });
       return;
     }

@@ -1,27 +1,18 @@
 // ============================================================
-// Wizard Entity — Physics sprite that walks (never flies).
-// Uses the procedural spritesheet created by BootScene.
+// Wizard Entity — Physics sprite driven by PlayerController.
+// Reads from the procedural 8-col spritesheet made by BootScene.
 // Shadow ellipse keeps feet visually grounded at all times.
 // ============================================================
 import Phaser from 'phaser';
 
 export type WizardDirection = 'down' | 'up' | 'left' | 'right';
 
-// Frame dimensions match BootScene generator (48×64 per cell, 4×8 rows)
-const FRAME_W = 48;
-const FRAME_H = 64;
+// Frame dimensions match BootScene generator (64×80 per cell, 8×8)
+const FRAME_W = 64;
+const FRAME_H = 80;
 
 // Scale: target display height in world pixels
 const TARGET_H = 80;
-
-// Row layout (mirroring BootScene)
-const _ROW: Record<WizardDirection, { idle: number; walk: number }> = {
-  down:  { idle: 0, walk: 1 },
-  up:    { idle: 2, walk: 3 },
-  left:  { idle: 4, walk: 5 },
-  right: { idle: 6, walk: 7 },
-};
-void _ROW; // referenced by type system only
 
 export class Wizard {
   sprite:  Phaser.Physics.Arcade.Sprite;
@@ -33,12 +24,10 @@ export class Wizard {
   constructor(scene: Phaser.Scene, x: number, y: number) {
     this.scene = scene;
 
-    // ── Shadow (drawn BELOW sprite, depth 9) ──────────────
-    // Placed at the wizard's feet and updated every frame
-    this.shadow = scene.add.ellipse(x, y, 28, 10, 0x000000, 0.28);
+    // Shadow placed at wizard's feet, depth below sprite
+    this.shadow = scene.add.ellipse(x, y, 30, 10, 0x000000, 0.25);
     this.shadow.setDepth(9);
 
-    // ── Sprite ────────────────────────────────────────────
     if (scene.textures.exists('wizard')) {
       this.sprite   = scene.physics.add.sprite(x, y, 'wizard');
       this.hasAnims = scene.anims.exists('wizard-walk-down');
@@ -53,7 +42,7 @@ export class Wizard {
     // Bottom-centre origin → feet sit exactly at (x, y)
     this.sprite.setOrigin(0.5, 1.0);
 
-    // Physics body at feet only
+    // Tight physics body at feet
     this._setPhysicsBody();
 
     this.sprite.setDepth(10);
@@ -69,6 +58,11 @@ export class Wizard {
   /** Must be called once per frame to keep shadow under feet */
   updateShadow() {
     this.shadow.setPosition(this.sprite.x, this.sprite.y - 2);
+    // Shadow scales slightly during walk for a more grounded look
+    const isMoving = (this.sprite.body as Phaser.Physics.Arcade.Body)?.speed > 10;
+    const scaleX = isMoving ? 1.15 : 1.0;
+    this.scene.tweens.killTweensOf(this.shadow);
+    this.shadow.setScale(scaleX, 1);
   }
 
   /** Called every frame from PlayerController */
@@ -89,26 +83,26 @@ export class Wizard {
   celebrate() {
     const oy = this.sprite.y;
     this.scene.tweens.add({
-      targets: this.sprite, y: oy - 18, duration: 140,
-      ease: 'Power2', yoyo: true, repeat: 2,
+      targets: this.sprite, y: oy - 20, duration: 130,
+      ease: 'Power2', yoyo: true, repeat: 3,
       onComplete: () => this.sprite.setY(oy),
     });
     this.scene.tweens.add({
       targets: this.sprite, tint: { from: 0xffffff, to: 0xffd700 },
-      duration: 100, yoyo: true, repeat: 3,
+      duration: 90, yoyo: true, repeat: 5,
     });
   }
 
   shake() {
     const ox = this.sprite.x;
     this.scene.tweens.add({
-      targets: this.sprite, x: ox + 8, duration: 45,
-      ease: 'Linear', yoyo: true, repeat: 5,
+      targets: this.sprite, x: ox + 9, duration: 40,
+      ease: 'Linear', yoyo: true, repeat: 6,
       onComplete: () => this.sprite.setX(ox),
     });
     this.scene.tweens.add({
       targets: this.sprite, tint: { from: 0xffffff, to: 0xff4444 },
-      duration: 70, yoyo: true, repeat: 3,
+      duration: 60, yoyo: true, repeat: 4,
     });
   }
 
@@ -117,8 +111,8 @@ export class Wizard {
   private _setPhysicsBody() {
     const spr   = this.sprite;
     const scale = spr.scaleX;
-    const bodyW = Math.round(FRAME_W * scale * 0.44);
-    const bodyH = Math.round(FRAME_H * scale * 0.26);
+    const bodyW = Math.round(FRAME_W * scale * 0.42);
+    const bodyH = Math.round(FRAME_H * scale * 0.24);
     spr.setBodySize(bodyW / scale, bodyH / scale, false);
     spr.setOffset(
       (FRAME_W - bodyW / scale) / 2,
@@ -129,35 +123,48 @@ export class Wizard {
   private _generateFallbackTexture(scene: Phaser.Scene) {
     if (scene.textures.exists('wizard-fallback')) return;
     const cv  = document.createElement('canvas');
-    cv.width  = 48; cv.height = 80;
+    cv.width  = 64; cv.height = 80;
     const ctx = cv.getContext('2d')!;
 
-    ctx.fillStyle = '#6b3a1f'; ctx.fillRect(12,60,10,18); ctx.fillRect(26,60,10,18);
-    ctx.fillStyle = '#5a1f9a';
-    ctx.beginPath(); ctx.moveTo(6,78); ctx.lineTo(42,78); ctx.lineTo(36,34); ctx.lineTo(12,34); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#7b3fc4'; ctx.fillRect(21,34,6,44);
-    ctx.fillStyle = '#1e3a8a'; ctx.fillRect(8,73,32,5);
-    ctx.fillStyle = '#c9a227'; ctx.fillRect(13,50,22,4);
-    ctx.fillStyle = '#f0cd60'; ctx.fillRect(21,49,6,6);
+    // Yellow robe fallback
+    ctx.fillStyle = '#d4a017';
+    ctx.beginPath(); ctx.moveTo(8,78); ctx.lineTo(56,78); ctx.lineTo(46,36); ctx.lineTo(18,36); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f5c518';
+    ctx.fillRect(29, 36, 6, 42);
+    // Belt
+    ctx.fillStyle = '#3d2800';
+    ctx.fillRect(18, 52, 28, 5);
+    ctx.fillStyle = '#ffe066';
+    ctx.fillRect(29, 51, 6, 7);
+    // Head
     ctx.fillStyle = '#f4c58a';
-    ctx.beginPath(); ctx.arc(24,28,12,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(32, 28, 12, 0, Math.PI * 2); ctx.fill();
+    // Beard
+    ctx.fillStyle = '#e8e8e8';
+    ctx.beginPath(); ctx.ellipse(32, 36, 9, 10, 0, 0, Math.PI * 2); ctx.fill();
+    // Eyes
     ctx.fillStyle = '#1a0533';
-    ctx.beginPath(); ctx.arc(20,28,2.5,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(28,28,2.5,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(21,27,1,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(29,27,1,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle = '#8b4513'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(24,31,4,0.1,Math.PI-0.1); ctx.stroke();
-    ctx.fillStyle = '#1a0533'; ctx.fillRect(11,17,26,6);
-    ctx.fillStyle = '#1a0533';
-    ctx.beginPath(); ctx.moveTo(24,-2); ctx.lineTo(13,21); ctx.lineTo(35,21); ctx.closePath(); ctx.fill();
-    ctx.fillStyle = '#c9a227'; ctx.fillRect(13,17,22,4);
-    ctx.fillStyle = '#8b5e3c'; ctx.fillRect(39,-4,3,44);
-    ctx.fillStyle = '#c084fc';
-    ctx.beginPath(); ctx.arc(40,-6,6,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#e9d5ff';
-    ctx.beginPath(); ctx.arc(38,-8,2,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(28, 27, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(36, 27, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(29, 26, 1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(37, 26, 1, 0, Math.PI * 2); ctx.fill();
+    // Hat
+    ctx.fillStyle = '#d4a017';
+    ctx.beginPath(); ctx.moveTo(32, 2); ctx.lineTo(15, 19); ctx.lineTo(49, 19); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#a07810';
+    ctx.fillRect(15, 19, 34, 5);
+    ctx.fillStyle = '#3d2800';
+    ctx.fillRect(16, 19, 32, 4);
+    ctx.fillStyle = '#ffe066';
+    ctx.fillRect(28, 19, 8, 4);
+    // Staff
+    ctx.fillStyle = '#7a4e1a';
+    ctx.fillRect(51, 4, 3, 52);
+    ctx.fillStyle = '#ffe866';
+    ctx.beginPath(); ctx.arc(52, 2, 6, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff5a0';
+    ctx.beginPath(); ctx.arc(50, 0, 2.5, 0, Math.PI * 2); ctx.fill();
 
     scene.textures.addCanvas('wizard-fallback', cv);
   }

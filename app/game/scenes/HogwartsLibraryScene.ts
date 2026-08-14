@@ -1,52 +1,55 @@
 // ============================================================
-// HogwartsLibraryScene — The Restricted Section
-// Interior scene for the Hogwarts Library building.
-// MM2 (hogwarts-library-interior.png) is the visual reference.
+// HogwartsLibraryScene — MM2 / Hogwarts Library
+// Contains the exit bubble (to outdoor) AND a quest bubble
+// that leads to the O9 Dark Spell Challenge room.
 // ============================================================
 import Phaser from 'phaser';
 import { eventBus } from '../EventBus';
 import { Wizard } from '../entities/Wizard';
 import { PlayerController } from '../systems/PlayerController';
+import { isQuestAvailable } from '../data/questPaths';
 
 const WORLD_W = 1680;
 const WORLD_H = 960;
 
-// Exit zone — centre of the room so it is always reachable.
-const EXIT_ZONE = {
-  x: 840,
-  y: 500,
-  halfW: 220,
-  halfH: 220,
-};
+// ── Exit zone (return to outdoor) ────────────────────────
+const EXIT_ZONE = { x: 840, y: 500, halfW: 220, halfH: 220 };
 
-// Spawn point — bottom-centre, just inside the entrance
+// ── Quest bubble — placed on the open floor, bottom-right
+// area (x≈1300, y≈680) — clear of all furniture colliders
+const QUEST_ZONE = { x: 1300, y: 680, radius: 72 };
+
 const DEFAULT_SPAWN_X = 840;
 const DEFAULT_SPAWN_Y = 730;
 
-// Return position — outside MM1 door in the outdoor world
-// Library at tile(110,110), door at 48% of 1100px width, 82% of 640px height
-const RETURN_X = 2200 + Math.round(1100 * 0.48);   // 2728
-const RETURN_Y = 2200 + Math.round(640  * 0.82) + 110; // 2835
+// Return from O9 — spawn near the quest bubble
+const RETURN_FROM_O9_X = 1300;
+const RETURN_FROM_O9_Y = 750;
+
+// Return to outdoor world
+const RETURN_X = 2200 + Math.round(1100 * 0.48);
+const RETURN_Y = 2200 + Math.round(640  * 0.82) + 110;
 
 export class HogwartsLibraryScene extends Phaser.Scene {
   private wizard!: Wizard;
   private controller!: PlayerController;
   private staticGroup!: Phaser.Physics.Arcade.StaticGroup;
-  private nearExit = false;
+  private nearExit  = false;
+  private nearQuest = false;
   private isTransitioning = false;
-  private exitPrompt?: Phaser.GameObjects.Text;
+  private exitPrompt?:  Phaser.GameObjects.Text;
+  private questPrompt?: Phaser.GameObjects.Text;
 
-  constructor() {
-    super({ key: 'HogwartsLibraryScene' });
-  }
+  constructor() { super({ key: 'HogwartsLibraryScene' }); }
 
   preload() {
     this.load.image('libraryInterior', '/assets/backgrounds/hogwarts-library-interior.png');
   }
 
-  create(data?: { spawnX?: number; spawnY?: number }) {
+  create(data?: { spawnX?: number; spawnY?: number; fromO9?: boolean }) {
     this.isTransitioning = false;
-    this.nearExit = false;
+    this.nearExit  = false;
+    this.nearQuest = false;
 
     this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
 
@@ -62,38 +65,41 @@ export class HogwartsLibraryScene extends Phaser.Scene {
     this.staticGroup = this.physics.add.staticGroup();
     this._createColliders();
 
-    // Permanent exit bubble at centre
+    // ── Exit bubble ───────────────────────────────────────
     this._createExitBubble();
-
-    // Exit prompt
     this.exitPrompt = this.add.text(EXIT_ZONE.x, EXIT_ZONE.y - 60, 'E  EXIT', {
-      fontFamily: 'monospace',
-      fontSize:   '13px',
-      fontStyle:  'bold',
-      color:      '#ffe4a3',
-      stroke:     '#20150d',
-      strokeThickness: 4,
-      padding: { x: 6, y: 3 },
-      backgroundColor: '#4d311d',
+      fontFamily: 'monospace', fontSize: '13px', fontStyle: 'bold',
+      color: '#ffe4a3', stroke: '#20150d', strokeThickness: 4,
+      padding: { x: 6, y: 3 }, backgroundColor: '#4d311d',
     }).setOrigin(0.5).setDepth(30).setVisible(false);
 
-    // Wizard
+    // ── Quest bubble — evil path only ──────────────────────
+    if (isQuestAvailable('restrictedBook')) {
+      this._createQuestBubble();
+    }
+    this.questPrompt = this.add.text(QUEST_ZONE.x, QUEST_ZONE.y - 60, 'E  START QUEST', {
+      fontFamily: 'monospace', fontSize: '11px', fontStyle: 'bold',
+      color: '#d4aaff', stroke: '#10003a', strokeThickness: 4,
+      padding: { x: 7, y: 3 }, backgroundColor: '#1a0040',
+    }).setOrigin(0.5).setDepth(32).setVisible(false);
+
+    // ── Wizard ────────────────────────────────────────────
     this.wizard = new Wizard(this, spawnX, spawnY);
     const spr = this.wizard.getSprite();
     spr.setDepth(spawnY + 10);
 
     const body = spr.body as Phaser.Physics.Arcade.Body;
     if (body) {
-      const feetW = Math.min(32, Math.max(16, Math.round(spr.width  * 0.5)));
-      const feetH = Math.min(32, Math.max(12, Math.round(spr.height * 0.26)));
-      body.setSize(feetW, feetH);
-      body.setOffset(Math.round((spr.width - feetW) / 2), spr.height - feetH);
+      const fw = Math.min(32, Math.max(16, Math.round(spr.width  * 0.5)));
+      const fh = Math.min(32, Math.max(12, Math.round(spr.height * 0.26)));
+      body.setSize(fw, fh);
+      body.setOffset(Math.round((spr.width - fw) / 2), spr.height - fh);
     }
 
     this.physics.add.collider(spr, this.staticGroup);
-
     this.controller = new PlayerController(this, this.wizard, () => this._handleInteract());
 
+    // ── Camera ────────────────────────────────────────────
     const cam = this.cameras.main;
     cam.setBounds(0, 0, WORLD_W, WORLD_H);
     cam.startFollow(spr, true, 0.1, 0.1);
@@ -108,25 +114,36 @@ export class HogwartsLibraryScene extends Phaser.Scene {
   }
 
   update(_t: number, delta: number) {
-    if (this.isTransitioning) return;
-    if (!this.wizard || !this.controller) return;
-
+    if (this.isTransitioning || !this.wizard || !this.controller) return;
     this.controller.update(delta);
 
     const spr = this.wizard.getSprite();
     spr.setDepth(spr.y + 10);
 
-    const wasNear = this.nearExit;
+    // Exit zone
+    const wasNearExit = this.nearExit;
     const dx = Math.abs(spr.x - EXIT_ZONE.x);
     const dy = Math.abs(spr.y - EXIT_ZONE.y);
     this.nearExit = dx <= EXIT_ZONE.halfW && dy <= EXIT_ZONE.halfH;
-
-    if (this.nearExit !== wasNear) {
+    if (this.nearExit !== wasNearExit) {
       eventBus.emit('PLAYER_NEAR_DOOR', { near: this.nearExit, target: 'hogwartsLibrary' });
       this.exitPrompt?.setVisible(this.nearExit);
     }
+
+    // Quest zone — evil path only
+    if (isQuestAvailable('restrictedBook')) {
+      const wasNearQuest = this.nearQuest;
+      const qd = Phaser.Math.Distance.Between(spr.x, spr.y, QUEST_ZONE.x, QUEST_ZONE.y);
+      this.nearQuest = qd < QUEST_ZONE.radius;
+      if (this.nearQuest !== wasNearQuest) {
+        this.questPrompt?.setVisible(this.nearQuest);
+      }
+    } else {
+      this.nearQuest = false;
+    }
   }
 
+  // ── Exit bubble (book icon, golden) ──────────────────────
   private _createExitBubble() {
     const cx = EXIT_ZONE.x, cy = EXIT_ZONE.y;
     const glow = this.add.circle(cx, cy, 36, 0xffcc22, 0.14).setDepth(28);
@@ -136,90 +153,95 @@ export class HogwartsLibraryScene extends Phaser.Scene {
       scaleX: { from: 0.88, to: 1.18 }, scaleY: { from: 0.88, to: 1.18 },
       duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
     });
-    const bubble = this.add.circle(cx, cy, 26, 0x1a0a02, 0.9).setDepth(29);
-    bubble.setStrokeStyle(2.5, 0xffcc55, 1);
-    const icon = this.add.text(cx, cy, '\u{1F4DA}', { fontSize: '20px' }).setOrigin(0.5).setDepth(30);
+    const bubble = this.add.circle(cx, cy, 26, 0x1a0a02, 0.9).setStrokeStyle(2.5, 0xffcc55, 1).setDepth(29);
+    const icon   = this.add.text(cx, cy, '\u{1F4DA}', { fontSize: '20px' }).setOrigin(0.5).setDepth(30);
     this.tweens.add({ targets: [glow, bubble, icon], y: '-=7', duration: 1100, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
   }
 
-  // ── Collision layout based on MM2 at 1680x960 ─────────────────────────────
-  // Key rules:
-  //   - Staircase (top-left): block the steps, keep floor path in FRONT open
-  //   - Arch door (centre-top): block only the WALL sections left/right/above arch,
-  //     NOT the floor in front — player must be able to stand there
-  //   - Bookshelves left/right: solid from top to mid-height only
-  //   - Tables/furniture: solid blocks
-  //   - Chain barrier: decorative only, do NOT block the floor
+  // ── Quest bubble (purple ✨ magic, distinct from exit) ────
+  private _createQuestBubble() {
+    const cx = QUEST_ZONE.x, cy = QUEST_ZONE.y;
+
+    // Outer glow ring
+    const glow = this.add.circle(cx, cy, 42, 0x8822ff, 0.18).setDepth(28);
+    this.tweens.add({
+      targets: glow,
+      fillAlpha: { from: 0.10, to: 0.42 },
+      scaleX: { from: 0.82, to: 1.22 }, scaleY: { from: 0.82, to: 1.22 },
+      duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+
+    // Inner bubble
+    const bubble = this.add.circle(cx, cy, 28, 0x0d0020, 0.94).setStrokeStyle(2.5, 0xcc88ff, 1).setDepth(29);
+
+    // ✨ icon
+    const icon = this.add.text(cx, cy, '\u2728', { fontSize: '22px' }).setOrigin(0.5).setDepth(30);
+
+    // Float animation
+    this.tweens.add({
+      targets: [glow, bubble, icon],
+      y: '-=9', duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+
+    // Label below bubble
+    this.add.text(cx, cy + 46, 'DARK SPELL\nCHALLENGE', {
+      fontFamily: 'monospace', fontSize: '8px', color: '#cc88ff',
+      stroke: '#10003a', strokeThickness: 3, align: 'center',
+    }).setOrigin(0.5).setDepth(30);
+  }
+
+  private _handleInteract() {
+    if (this.isTransitioning) return;
+
+    // Quest takes priority when near quest bubble — evil path only
+    if (this.nearQuest && isQuestAvailable('restrictedBook')) {
+      this.isTransitioning = true;
+      eventBus.emit('PLAYER_NEAR_DOOR', { near: false });
+      this.cameras.main.fadeOut(700, 10, 0, 30); // purple-tinted fade
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.scene.start('O9Scene', {
+          returnX: RETURN_FROM_O9_X,
+          returnY: RETURN_FROM_O9_Y,
+        });
+      });
+      return;
+    }
+
+    // Exit to outdoor
+    if (this.nearExit) {
+      eventBus.emit('PLAYER_NEAR_DOOR', { near: false });
+      eventBus.emit('EXIT_BUILDING', { buildingId: 'hogwartsLibrary' });
+      this.isTransitioning = true;
+      this.cameras.main.fadeOut(500, 0, 0, 0);
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.scene.start('OutdoorWorldScene', { returnX: RETURN_X, returnY: RETURN_Y });
+      });
+    }
+  }
+
   private _createColliders() {
     const T = 32;
-    // Outer room walls
-    this._block(WORLD_W / 2,     T / 2,              WORLD_W, T);   // top
-    this._block(WORLD_W / 2,     WORLD_H - T / 2,    WORLD_W, T);   // bottom
-    this._block(T / 2,           WORLD_H / 2,        T, WORLD_H);   // left
-    this._block(WORLD_W - T / 2, WORLD_H / 2,        T, WORLD_H);   // right
-
-    // ── STAIRCASE (top-left) ─────────────────────────────────────────────────
-    // Steps themselves: x≈32–230, y≈32–360 — block the steps
-    // Floor path in front of stairs (x≈32–230, y≈360–450) — keep OPEN
-    this._block(130, 195, 195, 325);   // stair steps — solid
-
-    // ── LEFT TALL BOOKSHELF ──────────────────────────────────────────────────
-    // x≈235–545, y≈32–490
-    // Keep the floor BELOW the shelf (y>490) open for walking
-    this._block(390, 260, 310, 455);
-
-    // ── RIGHT TALL BOOKSHELF ─────────────────────────────────────────────────
-    // x≈1135–1450, y≈32–490
-    this._block(1292, 260, 315, 455);
-
-    // ── CENTRAL ARCH DOOR — only block the solid WALL, not the floor ─────────
-    // The arch opening is at x≈695–985, y≈160–380
-    // Wall ABOVE arch: x≈695–985, y≈32–160
-    this._block(840, 96, 290, 128);
-    // Wall LEFT of arch: x≈545–695, y≈32–380
-    this._block(620, 206, 150, 348);
-    // Wall RIGHT of arch: x≈985–1135, y≈32–380
-    this._block(1060, 206, 150, 348);
-    // The arch DOOR itself (chained, impassable): x≈695–985, y≈160–380
-    // Block only the door panel, not the floor step in front
-    this._block(840, 255, 290, 190);
-
-    // ── SMALL READING TABLE LEFT ─────────────────────────────────────────────
-    // x≈115–370, y≈480–620
-    this._block(242, 550, 255, 140);
-
-    // ── READING DESK + CHAIR RIGHT-CENTRE ────────────────────────────────────
-    // x≈940–1210, y≈390–565
-    this._block(1075, 477, 270, 175);
-
-    // ── RIGHT-SIDE SKULL / GLOBE STAND ───────────────────────────────────────
-    // x≈1450–1648, y≈440–680
-    this._block(1549, 560, 200, 240);
-
-    // ── BOTTOM TREASURE CHESTS LEFT ──────────────────────────────────────────
-    this._block(110, 770, 185, 220);
-
-    // ── BOTTOM TREASURE CHESTS RIGHT ─────────────────────────────────────────
-    this._block(1570, 770, 185, 220);
-
-    // NOTE: Chain barrier posts are purely decorative — no collision.
-    // Player can freely walk through that area to reach the exit bubble.
+    this._block(WORLD_W / 2,     T / 2,           WORLD_W, T);
+    this._block(WORLD_W / 2,     WORLD_H - T / 2, WORLD_W, T);
+    this._block(T / 2,           WORLD_H / 2,     T, WORLD_H);
+    this._block(WORLD_W - T / 2, WORLD_H / 2,     T, WORLD_H);
+    this._block(130,  195,  195, 325);
+    this._block(390,  260,  310, 455);
+    this._block(1292, 260,  315, 455);
+    this._block(840,   96,  290, 128);
+    this._block(620,  206,  150, 348);
+    this._block(1060, 206,  150, 348);
+    this._block(840,  255,  290, 190);
+    this._block(242,  550,  255, 140);
+    this._block(1075, 477,  270, 175);
+    this._block(1549, 560,  200, 240);
+    this._block(110,  770,  185, 220);
+    this._block(1570, 770,  185, 220);
   }
 
   private _block(cx: number, cy: number, w: number, h: number) {
     const rect = this.add.rectangle(cx, cy, w, h, 0x000000, 0);
     this.physics.add.existing(rect, true);
     this.staticGroup.add(rect);
-  }
-
-  private _handleInteract() {
-    if (!this.nearExit || this.isTransitioning) return;
-    eventBus.emit('PLAYER_NEAR_DOOR', { near: false });
-    eventBus.emit('EXIT_BUILDING', { buildingId: 'hogwartsLibrary' });
-    this.isTransitioning = true;
-    this.cameras.main.fadeOut(500, 0, 0, 0);
-    this.cameras.main.once('camerafadeoutcomplete', () => {
-      this.scene.start('OutdoorWorldScene', { returnX: RETURN_X, returnY: RETURN_Y });
-    });
   }
 }

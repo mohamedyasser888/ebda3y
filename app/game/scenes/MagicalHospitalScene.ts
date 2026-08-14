@@ -15,6 +15,9 @@ const WORLD_H = 960;
 // Exit zone — bottom-centre open corridor between benches, in front of the entrance arch
 const EXIT_ZONE = { x: 840, y: 830, halfW: 220, halfH: 70 };
 
+// ── Quest bubble — centre of the open walkable area (between pool and benches)
+const QUEST_ZONE = { x: 840, y: 580, radius: 90 };
+
 // Spawn — just inside the entrance arch at bottom-centre
 const DEFAULT_SPAWN_X = 840;
 const DEFAULT_SPAWN_Y = 820;
@@ -30,8 +33,10 @@ export class MagicalHospitalScene extends Phaser.Scene {
   private controller!: PlayerController;
   private staticGroup!: Phaser.Physics.Arcade.StaticGroup;
   private nearExit = false;
+  private nearQuest = false;
   private isTransitioning = false;
   private exitPrompt?: Phaser.GameObjects.Text;
+  private questPrompt?: Phaser.GameObjects.Text;
 
   constructor() { super({ key: 'MagicalHospitalScene' }); }
 
@@ -54,6 +59,7 @@ export class MagicalHospitalScene extends Phaser.Scene {
     this.staticGroup = this.physics.add.staticGroup();
     this._createColliders();
     this._createExitBubble();
+    this._createQuestBubble();
 
     // Exit prompt
     this.exitPrompt = this.add.text(EXIT_ZONE.x, EXIT_ZONE.y - 60, 'E  EXIT', {
@@ -61,6 +67,13 @@ export class MagicalHospitalScene extends Phaser.Scene {
       color: '#ffe4a3', stroke: '#20150d', strokeThickness: 4,
       padding: { x: 6, y: 3 }, backgroundColor: '#4d311d',
     }).setOrigin(0.5).setDepth(30).setVisible(false);
+
+    // Quest prompt
+    this.questPrompt = this.add.text(QUEST_ZONE.x, QUEST_ZONE.y - 62, 'E  START QUEST', {
+      fontFamily: 'monospace', fontSize: '11px', fontStyle: 'bold',
+      color: '#ffe4a3', stroke: '#10003a', strokeThickness: 4,
+      padding: { x: 7, y: 3 }, backgroundColor: '#1a0040',
+    }).setOrigin(0.5).setDepth(32).setVisible(false);
 
     // Wizard
     this.wizard = new Wizard(this, spawnX, spawnY);
@@ -105,6 +118,14 @@ export class MagicalHospitalScene extends Phaser.Scene {
     if (this.nearExit !== wasNear) {
       eventBus.emit('PLAYER_NEAR_DOOR', { near: this.nearExit, target: 'magicalHospital' });
       this.exitPrompt?.setVisible(this.nearExit);
+    }
+
+    // Quest zone
+    const wasNearQ = this.nearQuest;
+    const qd = Phaser.Math.Distance.Between(spr.x, spr.y, QUEST_ZONE.x, QUEST_ZONE.y);
+    this.nearQuest = qd < QUEST_ZONE.radius;
+    if (this.nearQuest !== wasNearQ) {
+      this.questPrompt?.setVisible(this.nearQuest);
     }
   }
 
@@ -208,7 +229,24 @@ export class MagicalHospitalScene extends Phaser.Scene {
   }
 
   private _handleInteract() {
-    if (!this.nearExit || this.isTransitioning) return;
+    if (this.isTransitioning) return;
+
+    // Quest bubble — transition to H2SpellQuestScene
+    if (this.nearQuest) {
+      this.isTransitioning = true;
+      eventBus.emit('PLAYER_NEAR_DOOR', { near: false });
+      this.cameras.main.fadeOut(600, 10, 0, 30);
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.scene.start('H2SpellQuestScene', {
+          returnX: RETURN_X,
+          returnY: RETURN_Y + 50,
+        });
+      });
+      return;
+    }
+
+    // Exit
+    if (!this.nearExit) return;
     eventBus.emit('PLAYER_NEAR_DOOR', { near: false });
     eventBus.emit('EXIT_BUILDING', { buildingId: 'magicalHospital' });
     this.isTransitioning = true;
@@ -216,5 +254,29 @@ export class MagicalHospitalScene extends Phaser.Scene {
     this.cameras.main.once('camerafadeoutcomplete', () => {
       this.scene.start('OutdoorWorldScene', { returnX: RETURN_X, returnY: RETURN_Y });
     });
+  }
+
+  // ── Quest bubble (purple ✨ sparkle) ──────────────────────────────────────
+  private _createQuestBubble() {
+    const cx = QUEST_ZONE.x, cy = QUEST_ZONE.y;
+    const glow = this.add.circle(cx, cy, 42, 0xaa44ff, 0.18).setDepth(28);
+    this.tweens.add({
+      targets: glow,
+      fillAlpha: { from: 0.10, to: 0.42 },
+      scaleX: { from: 0.82, to: 1.24 }, scaleY: { from: 0.82, to: 1.24 },
+      duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+    const bubble = this.add.circle(cx, cy, 28, 0x0d0020, 0.94)
+      .setStrokeStyle(2.5, 0xcc88ff, 1).setDepth(29);
+    const icon = this.add.text(cx, cy, '✨', { fontSize: '22px' })
+      .setOrigin(0.5).setDepth(30);
+    this.tweens.add({
+      targets: [glow, bubble, icon],
+      y: '-=9', duration: 1300, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+    this.add.text(cx, cy + 46, 'SPELL\nQUEST', {
+      fontFamily: 'monospace', fontSize: '8px', color: '#cc88ff',
+      stroke: '#10003a', strokeThickness: 3, align: 'center',
+    }).setOrigin(0.5).setDepth(30);
   }
 }

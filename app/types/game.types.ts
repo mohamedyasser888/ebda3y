@@ -16,7 +16,11 @@ export type SceneName =
   | 'HogwartsLibraryScene'
   | 'CreaturesClassScene'
   | 'MagicalHospitalScene'
-  | 'RarePlantQuestScene';
+  | 'RarePlantQuestScene'
+  | 'O9Scene'
+  | 'SpellTrainingScene'
+  | 'CreaturesInvestigationScene'
+  | 'H2SpellQuestScene';
 
 export type BrewingPhase =
   | 'idle' | 'selecting' | 'adding' | 'stirring' | 'brewing' | 'success' | 'failure';
@@ -102,6 +106,10 @@ export interface GameEvent {
   PLAYER_NEAR_DUEL:     { near: boolean };
   OPEN_QUEST:           undefined;
   CLOSE_QUEST:          { completed: boolean };
+  SHOW_PATH_SELECTION:  undefined;
+  PATH_SELECTED:        { path: 'good' | 'evil' };
+  PLAYER_NEAR_INSTRUCTOR: { near: boolean; name?: string; locked?: boolean };
+  OPEN_SPELL_GESTURE:   { spell: 'lumos' | 'nox' | 'expelliarmus' };
 }
 
 // ── Spell (for duelling) ──────────────────────────────────

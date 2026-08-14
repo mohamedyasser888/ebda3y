@@ -2,17 +2,21 @@
 // GameConfig — Phaser Game Configuration
 // ============================================================
 import Phaser from 'phaser';
-import { BootScene }                from './scenes/BootScene';
-import { OutdoorWorldScene }        from './scenes/OutdoorWorldScene';
-import { CommonRoomScene }          from './scenes/CommonRoomScene';
-import { PotionLabScene }           from './scenes/PotionLabScene';
-import { DuellingRoomScene }        from './scenes/DuellingRoomScene';
-import { BotanicalClassroomScene }  from './scenes/BotanicalClassroomScene';
-import { AstronomyTowerScene }      from './scenes/AstronomyTowerScene';
-import { HogwartsLibraryScene }     from './scenes/HogwartsLibraryScene';
-import { CreaturesClassScene }      from './scenes/CreaturesClassScene';
-import { MagicalHospitalScene }     from './scenes/MagicalHospitalScene';
-import { RarePlantQuestScene }      from './scenes/RarePlantQuestScene';
+import { BootScene }                    from './scenes/BootScene';
+import { OutdoorWorldScene }             from './scenes/OutdoorWorldScene';
+import { CommonRoomScene }               from './scenes/CommonRoomScene';
+import { PotionLabScene }               from './scenes/PotionLabScene';
+import { DuellingRoomScene }             from './scenes/DuellingRoomScene';
+import { BotanicalClassroomScene }       from './scenes/BotanicalClassroomScene';
+import { AstronomyTowerScene }           from './scenes/AstronomyTowerScene';
+import { HogwartsLibraryScene }          from './scenes/HogwartsLibraryScene';
+import { CreaturesClassScene }           from './scenes/CreaturesClassScene';
+import { MagicalHospitalScene }          from './scenes/MagicalHospitalScene';
+import { RarePlantQuestScene }           from './scenes/RarePlantQuestScene';
+import { O9Scene }                       from './scenes/O9Scene';
+import { SpellTrainingScene }            from './scenes/SpellTrainingScene';
+import { CreaturesInvestigationScene }   from './scenes/CreaturesInvestigationScene';
+import { H2SpellQuestScene }            from './scenes/H2SpellQuestScene';
 
 export const GameConfig: Phaser.Types.Core.GameConfig = {
   type:            Phaser.AUTO,
@@ -38,5 +42,5 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     keyboard: {},
   },
   // Scene order matters — BootScene must be first
-  scene: [BootScene, OutdoorWorldScene, CommonRoomScene, PotionLabScene, DuellingRoomScene, BotanicalClassroomScene, AstronomyTowerScene, HogwartsLibraryScene, CreaturesClassScene, MagicalHospitalScene, RarePlantQuestScene],
+  scene: [BootScene, OutdoorWorldScene, CommonRoomScene, PotionLabScene, DuellingRoomScene, BotanicalClassroomScene, AstronomyTowerScene, HogwartsLibraryScene, CreaturesClassScene, MagicalHospitalScene, RarePlantQuestScene, O9Scene, SpellTrainingScene, CreaturesInvestigationScene, H2SpellQuestScene],
 };

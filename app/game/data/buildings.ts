@@ -73,6 +73,16 @@ export const LIBRARY_BUILDING_DOOR = {
   y: LIBRARY_BUILDING_POSITION.y + Math.round(LIBRARY_BH * 0.82),   // 2725
 };
 
+// H2 Building — left side of map, tile(0,50) → world(0,1000), 40×24 tiles (800×480px)
+// Door: central arch at ~50% BW, ~83% BH
+const H2_BUILDING_POSITION = { x: 0, y: 50 * 20 };  // world(0, 1000)
+const H2_BW = 40 * 20;   // 800
+const H2_BH = 24 * 20;   // 480
+export const H2_BUILDING_DOOR = {
+  x: H2_BUILDING_POSITION.x + Math.round(H2_BW * 0.50),   // 400
+  y: H2_BUILDING_POSITION.y + Math.round(H2_BH * 0.83),   // 1399
+};
+
 // ── Buildings ─────────────────────────────────────────────
 export const BUILDINGS: BuildingDef[] = [
   {
@@ -153,8 +163,74 @@ export const BUILDINGS: BuildingDef[] = [
     returnY:     HOSPITAL_BUILDING_DOOR.y + 110,
     enterPrompt: 'Press E to enter Magical Hospital',
   },
+  {
+    id:          'h2Building',
+    label:       'Building H2',
+    sceneKey:    'H2SpellQuestScene',
+    doorX:       H2_BUILDING_DOOR.x,
+    doorY:       H2_BUILDING_DOOR.y,
+    doorRadius:  100,
+    spawnX:      960,
+    spawnY:      750,
+    returnX:     H2_BUILDING_DOOR.x,
+    returnY:     H2_BUILDING_DOOR.y + 120,
+    enterPrompt: '✨  Press E to enter Building H2',
+  },
 ];
 
 // Quick lookup by id
 export const BUILDING_MAP: Record<string, BuildingDef> =
   Object.fromEntries(BUILDINGS.map((b) => [b.id, b]));
+
+// ── Evil Path Guidance Targets ─────────────────────────────────────────────
+// Ordered sequence: F7 → Building 23 → H1 (MM1)
+// World positions are the door centres of each building.
+// The MM1 building (H1 destination) is placed at tile(25,50) → world px (500,1000).
+// Adjust MM1_WORLD_X / MM1_WORLD_Y if the building is placed differently.
+
+const MM1_WORLD_X = 500 + Math.round(50 * 20 * 0.50);  // centre of ~50-tile-wide building
+const MM1_WORLD_Y = 1000 + Math.round(32 * 20 * 0.83); // door at ~83% height
+
+export interface EvilGuidanceTarget {
+  id:            string;   // internal step id
+  label:         string;   // short display name
+  objectiveText: string;   // full quest bar text
+  worldX:        number;   // door centre world-px X
+  worldY:        number;   // door centre world-px Y
+  arrivalRadius: number;   // pixels — player "arrives" inside this circle
+}
+
+export const EVIL_GUIDANCE_TARGETS: EvilGuidanceTarget[] = [
+  {
+    id:            'evil_guidance_f7',
+    label:         'F7',
+    objectiveText: 'Go to F7 and win the duel',
+    worldX:        DUEL_BUILDING_DOOR.x,
+    worldY:        DUEL_BUILDING_DOOR.y,
+    arrivalRadius: 160,
+  },
+  {
+    id:            'evil_guidance_building23',
+    label:         'Building 23',
+    objectiveText: 'Go to Building 23 — find the Rare Plant',
+    worldX:        BOTANICAL_BUILDING_DOOR.x,
+    worldY:        BOTANICAL_BUILDING_DOOR.y,
+    arrivalRadius: 160,
+  },
+  {
+    id:            'evil_guidance_library',
+    label:         'Library',
+    objectiveText: 'Go to Library — find the Restricted Book',
+    worldX:        LIBRARY_BUILDING_DOOR.x,
+    worldY:        LIBRARY_BUILDING_DOOR.y,
+    arrivalRadius: 160,
+  },
+  {
+    id:            'evil_guidance_h1',
+    label:         'Building H1',
+    objectiveText: 'Go to H1 — complete the Spell Challenge',
+    worldX:        H2_BUILDING_DOOR.x,
+    worldY:        H2_BUILDING_DOOR.y,
+    arrivalRadius: 160,
+  },
+];

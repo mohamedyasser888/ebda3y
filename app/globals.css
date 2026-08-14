@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&display=swap');
+
 /* ============================================================
    GLOBAL RESET & BASE
    ============================================================ */
@@ -39,19 +41,22 @@ html, body {
 }
 
 /* ============================================================
-   LANDING PAGE (Problem 1)
+   LANDING PAGE
    ============================================================ */
+
 .landing-bg {
   position: fixed;
   inset: 0;
-  background: radial-gradient(ellipse at center, #1a0a2e 0%, #0a0a1a 100%);
+  background:
+    radial-gradient(ellipse at 50% 0%,   #1a0a3a 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 100%, #0a0020 0%, transparent 55%),
+    #060010;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  image-rendering: pixelated;
 }
 
 .landing-stars {
@@ -61,20 +66,30 @@ html, body {
   z-index: 1;
 }
 
-.landing-star-dot {
-  opacity: 0.2;
+/* Ambient glow orbs */
+.landing-orb {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  filter: blur(120px);
+  opacity: 0.18;
 }
 
-.landing-moon {
-  position: absolute;
-  top: 40px;
-  right: 40px;
-  width: 120px;
-  height: 120px;
-  background: #fffde0;
-  border-radius: 50%;
-  box-shadow: 0 0 30px 10px rgba(255, 253, 224, 0.4);
-  z-index: 2;
+.landing-orb--left {
+  left: -180px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #5b21b6;
+}
+
+.landing-orb--right {
+  right: -180px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1d4ed8;
 }
 
 .landing-content {
@@ -84,84 +99,133 @@ html, body {
   justify-content: center;
   z-index: 10;
   text-align: center;
-  animation: landingFloat 4s ease-in-out infinite;
+  animation: landingFloat 5s ease-in-out infinite;
+  padding: 0 24px;
+  gap: 0;
+}
+
+/* Eyebrow label */
+.landing-eyebrow {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 5px;
+  color: #9b7ed4;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  opacity: 0.9;
 }
 
 .landing-icon {
-  font-size: 160px;
-  width: 160px;
-  height: 160px;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 96px;
   line-height: 1;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 40px rgba(180, 140, 255, 0.5));
 }
 
 .landing-title {
-  font-family: "Press Start 2P", monospace;
-  font-size: 64px;
-  color: #F4D03F;
-  text-shadow: 4px 4px 0 #8B6914;
-  margin: 0 0 15px 0;
-  line-height: 1.2;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(72px, 10vw, 128px);
+  font-weight: 900;
+  color: #f0e0b0;
+  margin: 0 0 10px 0;
+  line-height: 1;
+  letter-spacing: 6px;
+  text-shadow:
+    0 0 60px rgba(220, 180, 100, 0.5),
+    0 0 20px rgba(220, 180, 100, 0.3),
+    2px 4px 0px rgba(0,0,0,0.6);
 }
 
 .landing-subtitle {
-  font-family: "Press Start 2P", monospace;
-  font-size: 18px;
-  color: #c8a96e;
-  letter-spacing: 6px;
-  margin: 0 0 45px 0;
-  text-transform: uppercase;
+  font-family: 'Cinzel', serif;
+  font-size: clamp(13px, 1.5vw, 16px);
+  color: #9b8ab0;
+  letter-spacing: 3px;
+  margin: 0 0 28px 0;
+  font-weight: 400;
 }
 
-.landing-badges {
-  display: flex;
-  gap: 15px;
-  margin-bottom: 50px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.landing-badge {
-  font-family: "Press Start 2P", monospace;
-  font-size: 14px;
-  color: #f5e6c8;
-  background: #2c1810;
-  border: 2px solid #F4D03F;
-  border-radius: 9999px;
-  padding: 14px 22px;
-  box-shadow: 3px 3px 0 #000;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.landing-enter-btn {
-  width: 380px;
-  height: 70px;
-  font-family: "Press Start 2P", monospace;
-  font-size: 18px;
-  color: #1a0a2e;
-  background: #F4D03F;
-  border: 4px solid #000;
-  box-shadow: 5px 5px 0 #8B6914;
-  cursor: pointer;
-  transition: transform 0.1s, box-shadow 0.1s;
+/* Decorative divider */
+.landing-divider {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 14px;
+  width: 320px;
+  margin-bottom: 40px;
+}
+
+.landing-divider__line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #6d4c9e 50%, transparent);
+  opacity: 0.6;
+}
+
+.landing-divider__gem {
+  font-size: 12px;
+  color: #c8a96e;
+  opacity: 0.8;
+}
+
+/* CTA Button */
+.landing-enter-btn {
+  position: relative;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  overflow: hidden;
+  border-radius: 4px;
+  transition: transform 0.2s ease, filter 0.2s ease;
 }
 
 .landing-enter-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 8px 8px 0 #8B6914;
+  transform: translateY(-2px);
+  filter: brightness(1.1);
 }
 
 .landing-enter-btn:active {
-  transform: translateY(0);
-  box-shadow: 5px 5px 0 #8B6914;
+  transform: translateY(1px);
 }
+
+.landing-enter-btn__inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 60px;
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: #0a0015;
+  background: linear-gradient(135deg, #e8c97a 0%, #c8a020 40%, #e8c97a 60%, #c8a020 100%);
+  background-size: 200% 100%;
+  border-radius: 4px;
+  position: relative;
+  box-shadow:
+    0 0 30px rgba(200, 160, 32, 0.4),
+    0 4px 20px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  animation: shimmer 3s infinite linear;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Hint text */
+.landing-hint {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  color: #5a4a6e;
+  letter-spacing: 3px;
+  margin: 18px 0 0 0;
+  text-transform: uppercase;
+}
+
 
 /* ============================================================
    DUELLING SYSTEM (Problem 3)
@@ -652,3 +716,422 @@ html, body {
   33% { content: ".."; }
   66% { content: "..."; }
 }
+
+/* ============================================================
+   QUEST HUD & MAGICAL NOTIFICATIONS
+   ============================================================ */
+
+.quest-hud {
+  position: fixed;
+  top: 25px;
+  left: 25px;
+  width: 320px;
+  background: linear-gradient(135deg, rgba(26,5,51,0.95), rgba(42,16,5,0.95));
+  border: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: 15px 20px;
+  color: var(--cream);
+  font-family: "Press Start 2P", monospace;
+  z-index: 90;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.8), inset 0 0 15px rgba(244,208,63,0.1);
+  pointer-events: none;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.quest-hud--flash {
+  transform: scale(1.05);
+  box-shadow: 6px 6px 0 rgba(0,0,0,0.8), 0 0 20px rgba(244,208,63,0.5), inset 0 0 20px rgba(244,208,63,0.3);
+}
+
+.quest-hud__name {
+  font-size: 10px;
+  color: var(--gold-light);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quest-hud__diamond {
+  color: #ff9944;
+}
+
+.quest-hud__divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 10px 0;
+  opacity: 0.5;
+}
+
+.quest-hud__objective {
+  font-size: 13px;
+  line-height: 1.4;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.quest-hud__clues {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.quest-hud__clue-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #555;
+  background: #222;
+  box-shadow: 1px 1px 0 #000;
+}
+
+.quest-hud__clue-dot--found {
+  border-color: #88ffcc;
+  background: #22aa88;
+  box-shadow: 0 0 8px #88ffcc;
+}
+
+.quest-hud__clue-label {
+  font-size: 9px;
+  color: #88ffcc;
+  margin-left: auto;
+}
+
+/* Clue Notification */
+.clue-notification {
+  position: fixed;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%) translateY(50px);
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, rgba(9,26,14,0.95), rgba(9,26,14,0.95), transparent);
+  border-top: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  padding: 15px 40px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  z-index: 105;
+  pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.clue-notification--in {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  border-color: #44aa88;
+}
+
+.clue-notification--out {
+  transform: translateX(-50%) translateY(-30px);
+  opacity: 0;
+}
+
+.clue-notification__icon {
+  font-size: 32px;
+  animation: floatUp 2s ease-in-out infinite alternate;
+}
+
+.clue-notification__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.clue-notification__badge {
+  font-family: "Press Start 2P", monospace;
+  font-size: 9px;
+  color: #44aa88;
+  text-shadow: 1px 1px 0 #000;
+}
+
+.clue-notification__name {
+  font-family: "Press Start 2P", monospace;
+  font-size: 16px;
+  color: #88ffcc;
+  text-shadow: 2px 2px 0 #000;
+}
+
+.clue-notification__sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: #88ffcc;
+  border-radius: 50%;
+  box-shadow: 0 0 10px 2px #88ffcc;
+}
+
+.clue-notification__sparkle-1 { left: 20%; top: -5px; animation: twinkle 1s infinite alternate; }
+.clue-notification__sparkle-2 { right: 20%; bottom: -5px; animation: twinkle 1.5s infinite alternate-reverse; }
+
+/* Quest Complete Overlay */
+.quest-complete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.quest-complete-overlay__bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.8) 100%);
+  animation: qcBgIn 1s ease-out forwards;
+}
+
+.quest-complete-overlay__content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: qcContentIn 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.quest-complete-overlay__title {
+  font-family: "Press Start 2P", monospace;
+  font-size: 42px;
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(244,208,63,0.5), 4px 4px 0 #1a0a00;
+  margin: 0 0 20px 0;
+  line-height: 1.4;
+}
+
+.quest-complete-overlay__subtitle {
+  font-family: "Press Start 2P", monospace;
+  font-size: 16px;
+  color: #f0e8a0;
+  text-shadow: 2px 2px 0 #1a0a00;
+  background: rgba(10,5,32,0.8);
+  padding: 10px 20px;
+  border: 2px solid var(--gold-dim);
+  border-radius: 4px;
+}
+
+.quest-complete-overlay__particles {
+  position: absolute;
+  inset: -100px;
+}
+
+.quest-complete-overlay__particle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  box-shadow: 0 0 10px 2px var(--gold);
+  transform-origin: center;
+  animation: qcParticleOut var(--speed) ease-out var(--delay) forwards;
+}
+
+@keyframes qcBgIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes qcContentIn {
+  0% { transform: scale(0.5) translateY(50px); opacity: 0; filter: blur(10px); }
+  100% { transform: scale(1) translateY(0); opacity: 1; filter: blur(0); }
+}
+
+@keyframes qcParticleOut {
+  0% { transform: translate(-50%, -50%) rotate(var(--angle)) translateX(0) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--angle)) translateX(300px) scale(0); opacity: 0; }
+}
+
+/* ============================================================
+   EVIL PATH QUEST BAR (top-centre, guided navigation)
+   ============================================================ */
+
+.evil-quest-bar {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-110%);
+  width: 460px;
+  max-width: 96vw;
+  background: linear-gradient(160deg, rgba(18,4,40,0.97) 0%, rgba(30,8,8,0.97) 100%);
+  border: 2px solid var(--gold);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 12px 20px 14px;
+  color: var(--cream);
+  font-family: "Press Start 2P", monospace;
+  z-index: 92;
+  pointer-events: none;
+  box-shadow:
+    0 6px 24px rgba(0,0,0,0.7),
+    0 0 18px rgba(153,51,255,0.18),
+    inset 0 0 18px rgba(244,208,63,0.06);
+  transition: transform 0.45s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.3s;
+}
+
+.evil-quest-bar--visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+.evil-quest-bar--flash {
+  box-shadow:
+    0 6px 24px rgba(0,0,0,0.7),
+    0 0 30px rgba(244,208,63,0.55),
+    inset 0 0 28px rgba(244,208,63,0.18);
+}
+
+.evil-quest-bar--arrival {
+  box-shadow:
+    0 6px 24px rgba(0,0,0,0.7),
+    0 0 36px rgba(136,255,204,0.5),
+    inset 0 0 28px rgba(136,255,204,0.1);
+  border-color: #88ffcc;
+}
+
+.evil-quest-bar__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.evil-quest-bar__title {
+  font-size: 10px;
+  color: #dd4444;
+  text-shadow: 0 0 8px rgba(220,60,60,0.6), 1px 1px 0 #000;
+  letter-spacing: 2px;
+}
+
+.evil-quest-bar__rune {
+  color: var(--gold);
+  font-size: 10px;
+  opacity: 0.8;
+  animation: evilRunePulse 2.2s ease-in-out infinite alternate;
+}
+
+@keyframes evilRunePulse {
+  from { opacity: 0.5; text-shadow: none; }
+  to   { opacity: 1;   text-shadow: 0 0 10px rgba(244,208,63,0.6); }
+}
+
+.evil-quest-bar__divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(244,208,63,0.5), rgba(153,51,255,0.4), rgba(244,208,63,0.5), transparent);
+  margin: 8px 0;
+}
+
+.evil-quest-bar__steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.evil-quest-bar__step-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.evil-quest-bar__step {
+  font-size: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 3px;
+  transition: all 0.3s;
+}
+
+.evil-quest-bar__step--pending {
+  color: rgba(200,180,160,0.4);
+}
+
+.evil-quest-bar__step--active {
+  color: var(--gold-light);
+  background: rgba(244,208,63,0.12);
+  border: 1px solid rgba(244,208,63,0.3);
+  text-shadow: 0 0 8px rgba(244,208,63,0.4);
+  animation: evilStepPulse 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes evilStepPulse {
+  from { background: rgba(244,208,63,0.08); }
+  to   { background: rgba(244,208,63,0.22); }
+}
+
+.evil-quest-bar__step--done {
+  color: rgba(136,255,180,0.65);
+  text-decoration: line-through;
+  text-decoration-color: rgba(136,255,180,0.4);
+}
+
+.evil-quest-bar__step-check  { color: #88ffcc; }
+.evil-quest-bar__step-arrow  { color: var(--gold); animation: evilArrowBounce 0.7s ease-in-out infinite alternate; }
+.evil-quest-bar__step-dot    { color: rgba(200,180,160,0.35); }
+
+@keyframes evilArrowBounce {
+  from { transform: translateX(0); }
+  to   { transform: translateX(3px); }
+}
+
+.evil-quest-bar__connector {
+  font-size: 7px;
+  color: rgba(200,180,140,0.25);
+  letter-spacing: -1px;
+}
+
+.evil-quest-bar__connector--done {
+  color: rgba(136,255,180,0.4);
+}
+
+.evil-quest-bar__objective {
+  font-size: 11px;
+  color: var(--cream);
+  text-align: center;
+  text-shadow: 1px 1px 0 #000;
+  margin-top: 6px;
+  min-height: 18px;
+  transition: opacity 0.3s;
+}
+
+.evil-quest-bar__arrival-text {
+  color: #88ffcc;
+  font-size: 11px;
+  text-shadow: 0 0 12px rgba(136,255,204,0.8), 1px 1px 0 #000;
+  animation: evilArrivalPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes evilArrivalPop {
+  0%   { transform: scale(0.7); opacity: 0; }
+  60%  { transform: scale(1.08); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.evil-quest-bar__distance {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-top: 6px;
+  gap: 2px;
+}
+
+.evil-quest-bar__distance-val {
+  font-size: 9px;
+  color: rgba(180,160,220,0.8);
+  text-shadow: 1px 1px 0 #000;
+}
+
+.evil-quest-bar__distance-arrow {
+  font-size: 9px;
+  color: var(--gold);
+  animation: evilArrowBounce 0.7s ease-in-out infinite alternate;
+}
+
+

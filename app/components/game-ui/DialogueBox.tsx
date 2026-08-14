@@ -49,7 +49,16 @@ export function InteractionPrompt() {
       setPrompt(near ? '🪄  Press E to brew a potion' : null);
     });
 
-    return () => { offDoor(); offDuel(); offCauldron(); };
+    const offInstructor = eventBus.on('PLAYER_NEAR_INSTRUCTOR', (data: unknown) => {
+      const { near, name, locked } = data as { near: boolean; name?: string; locked?: boolean };
+      if (near) {
+        setPrompt(locked ? `🔒  ${name} is busy` : `🗣️  Press E to talk to ${name}`);
+      } else {
+        setPrompt(null);
+      }
+    });
+
+    return () => { offDoor(); offDuel(); offCauldron(); offInstructor(); };
   }, []);
 
   return <DialogueBox text={prompt ?? ''} visible={!!prompt} />;

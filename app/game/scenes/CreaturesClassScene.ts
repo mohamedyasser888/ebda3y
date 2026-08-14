@@ -7,6 +7,8 @@ import Phaser from 'phaser';
 import { eventBus } from '../EventBus';
 import { Wizard } from '../entities/Wizard';
 import { PlayerController } from '../systems/PlayerController';
+import { isQuestAvailable } from '../data/questPaths';
+import { useGameStore } from '../../stores/gameStore';
 
 const WORLD_W = 1680;
 const WORLD_H = 960;
@@ -23,13 +25,19 @@ const DEFAULT_SPAWN_Y = 860;
 const RETURN_X = 1000 + Math.round(1000 * 0.48);   // 1480
 const RETURN_Y = 3000 + Math.round(560  * 0.84) + 110; // 3581
 
+// Quest bubble position — near the creature arena
+const QUEST_BUBBLE = { x: 910, y: 450, radius: 70 };
+
 export class CreaturesClassScene extends Phaser.Scene {
   private wizard!: Wizard;
   private controller!: PlayerController;
   private staticGroup!: Phaser.Physics.Arcade.StaticGroup;
   private nearExit = false;
+  private nearQuestBubble = false;
   private isTransitioning = false;
   private exitPrompt?: Phaser.GameObjects.Text;
+  private questPrompt?: Phaser.GameObjects.Text;
+  private questBubbleVisible = false;
 
   constructor() { super({ key: 'CreaturesClassScene' }); }
 
@@ -40,6 +48,7 @@ export class CreaturesClassScene extends Phaser.Scene {
   create(data?: { spawnX?: number; spawnY?: number }) {
     this.isTransitioning = false;
     this.nearExit = false;
+    this.nearQuestBubble = false;
     this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
 
     const spawnX = data?.spawnX ?? DEFAULT_SPAWN_X;
@@ -53,11 +62,31 @@ export class CreaturesClassScene extends Phaser.Scene {
     this._createColliders();
     this._createExitBubble();
 
+    // ── Quest bubble (Good path only, quest not yet started) ──
+    const state = useGameStore.getState();
+    this.questBubbleVisible = (
+      isQuestAvailable('goodCreaturesLesson') &&
+      !state.goodCreaturesLessonStarted
+    );
+    if (this.questBubbleVisible) {
+      this._createQuestBubble();
+    }
+
     this.exitPrompt = this.add.text(EXIT_ZONE.x, EXIT_ZONE.y - 60, 'E  EXIT', {
       fontFamily: 'monospace', fontSize: '13px', fontStyle: 'bold',
       color: '#ffe4a3', stroke: '#20150d', strokeThickness: 4,
       padding: { x: 6, y: 3 }, backgroundColor: '#4d311d',
     }).setOrigin(0.5).setDepth(30).setVisible(false);
+
+    this.questPrompt = this.add.text(
+      QUEST_BUBBLE.x, QUEST_BUBBLE.y - 60,
+      '✦  E  —  بدء المهمة  ✦',
+      {
+        fontFamily: 'monospace', fontSize: '14px', fontStyle: 'bold',
+        color: '#ffe4a3', stroke: '#13200d', strokeThickness: 5,
+        padding: { x: 8, y: 4 }, backgroundColor: '#102a0a',
+      }
+    ).setOrigin(0.5).setDepth(30).setVisible(false);
 
     this.wizard = new Wizard(this, spawnX, spawnY);
     const spr = this.wizard.getSprite();
@@ -92,14 +121,75 @@ export class CreaturesClassScene extends Phaser.Scene {
     const spr = this.wizard.getSprite();
     spr.setDepth(spr.y + 10);
 
+    // Exit zone
     const wasNear = this.nearExit;
     const dx = Math.abs(spr.x - EXIT_ZONE.x);
     const dy = Math.abs(spr.y - EXIT_ZONE.y);
     this.nearExit = dx <= EXIT_ZONE.halfW && dy <= EXIT_ZONE.halfH;
-
     if (this.nearExit !== wasNear) {
       eventBus.emit('PLAYER_NEAR_DOOR', { near: this.nearExit, target: 'creaturesClass' });
       this.exitPrompt?.setVisible(this.nearExit);
+    }
+
+    // Quest bubble zone
+    if (this.questBubbleVisible) {
+      const wasNearQuest = this.nearQuestBubble;
+      const qd = Phaser.Math.Distance.Between(spr.x, spr.y, QUEST_BUBBLE.x, QUEST_BUBBLE.y);
+      this.nearQuestBubble = qd < QUEST_BUBBLE.radius;
+      if (this.nearQuestBubble !== wasNearQuest) {
+        this.questPrompt?.setVisible(this.nearQuestBubble);
+      }
+    }
+  }
+
+  private _createQuestBubble() {
+    const cx = QUEST_BUBBLE.x, cy = QUEST_BUBBLE.y;
+
+    // Outer pulsing glow
+    const glow = this.add.circle(cx, cy, 44, 0x22ff88, 0.14).setDepth(28);
+    this.tweens.add({
+      targets: glow,
+      fillAlpha: { from: 0.08, to: 0.38 },
+      scaleX: { from: 0.85, to: 1.25 },
+      scaleY: { from: 0.85, to: 1.25 },
+      duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+
+    // Bubble body
+    const bubble = this.add.circle(cx, cy, 28, 0x0a2a12, 0.9).setDepth(29);
+    bubble.setStrokeStyle(2.5, 0x44ff88, 1);
+
+    // '?' icon
+    const icon = this.add.text(cx, cy, '?', {
+      fontFamily: 'Georgia, serif', fontSize: '22px', fontStyle: 'bold', color: '#88ffaa',
+    }).setOrigin(0.5).setDepth(30);
+
+    // Float animation
+    this.tweens.add({
+      targets: [glow, bubble, icon],
+      y: '-=8',
+      duration: 1200, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+    });
+
+    // Orbiting sparkle particles
+    for (let i = 0; i < 3; i++) {
+      const angle0 = (i / 3) * Math.PI * 2;
+      const spark = this.add.circle(
+        cx + Math.cos(angle0) * 36,
+        cy + Math.sin(angle0) * 36,
+        3, 0x88ffcc, 0.8,
+      ).setDepth(30);
+      this.tweens.add({
+        targets: spark,
+        angle: 360,
+        duration: 2200 + i * 400,
+        repeat: -1,
+        ease: 'Linear',
+        onUpdate: (tw) => {
+          const a = angle0 + (tw.progress * Math.PI * 2);
+          spark.setPosition(cx + Math.cos(a) * 36, cy + Math.sin(a) * 36 - 4);
+        },
+      });
     }
   }
 
@@ -114,8 +204,6 @@ export class CreaturesClassScene extends Phaser.Scene {
   }
 
   // ── Collision based on S2 at 1680×960 ───────────────────────────────────
-  // S2: Chalkboard top-left, animal cages left+right, shelves top-centre,
-  // student desks bottom-left, circular arena right, aquarium tanks, barrels.
   private _createColliders() {
     const T = 32;
     // Outer walls
@@ -137,8 +225,6 @@ export class CreaturesClassScene extends Phaser.Scene {
     this._block(1020, 155, 200, 245);
 
     // Arch door top-right — only the stone frame above the arch opening.
-    // The walkable passage is x:1120-1310, y:190-280 — keep that FREE.
-    // Only block the solid stone header above the arch: x:1120-1310, y:32-160
     this._block(1215, 96, 190, 128);
 
     // Right shelf unit (top-right)           x:1310-1648, y:32-280
@@ -157,14 +243,9 @@ export class CreaturesClassScene extends Phaser.Scene {
     this._block(562, 505, 195, 130);
 
     // Circular creature arena (right)       x:620-1200, y:290-700
-    // Block the fence ring with gaps for entry
-    // Top of ring
     this._block(910, 295, 560, 60);
-    // Left of ring
     this._block(630, 490, 60, 390);
-    // Right of ring
     this._block(1190, 490, 60, 390);
-    // Bottom of ring (leave centre open for exit zone)
     this._block(760, 700, 200, 60);
     this._block(1070, 700, 200, 60);
 
@@ -180,9 +261,8 @@ export class CreaturesClassScene extends Phaser.Scene {
     this._block(257, 750, 285, 100);
 
     // Bottom-right: large cage x:1310-1648, y:600-780 (blocked)
-    // Staircase treads x:1310-1648, y:800-928 — walkable path beside them, treads blocked
     this._block(1480, 690, 340, 180);   // cage body
-    this._block(1480, 840, 340, 120);   // stair treads — cannot stand ON them, path beside is free
+    this._block(1480, 840, 340, 120);   // stair treads
   }
 
   private _block(cx: number, cy: number, w: number, h: number) {
@@ -192,7 +272,24 @@ export class CreaturesClassScene extends Phaser.Scene {
   }
 
   private _handleInteract() {
-    if (!this.nearExit || this.isTransitioning) return;
+    if (this.isTransitioning) return;
+
+    // Quest bubble interaction
+    if (this.nearQuestBubble && this.questBubbleVisible) {
+      const state = useGameStore.getState();
+      state.setGoodCreaturesLessonStarted();
+      this.questBubbleVisible = false;
+      this.questPrompt?.setVisible(false);
+      this.isTransitioning = true;
+      this.cameras.main.fadeOut(600, 0, 0, 0);
+      this.cameras.main.once('camerafadeoutcomplete', () => {
+        this.scene.start('CreaturesInvestigationScene');
+      });
+      return;
+    }
+
+    // Exit interaction
+    if (!this.nearExit) return;
     eventBus.emit('PLAYER_NEAR_DOOR', { near: false });
     eventBus.emit('EXIT_BUILDING', { buildingId: 'creaturesClass' });
     this.isTransitioning = true;

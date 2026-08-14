@@ -108,5 +108,10 @@ export class DuelManager {
     this.controller.setBlocked(false);
     this.countdownText?.destroy();
     this.countdownText = undefined;
+    // Destroy opponent wizard so it doesn't stay on screen after the duel ends
+    if (this.opponentWizard) {
+      this.opponentWizard.getSprite().destroy();
+      this.opponentWizard = undefined;
+    }
   }
 }
